@@ -1,32 +1,35 @@
 #pragma once
 #include <Windows.h>
 #include "Transform.h"
+#include <DirectXMath.h>
 
 class Camera
 {
 public:
-	Camera(Transform t, float aspectRatio, float FOV, float nearClip, float farClip, float moveSpeed, float mouseLookSpeed);
+	Camera(XMVECTOR position, XMVECTOR orientation, float aspectRatio, float field, float nClip, float fClip, float move, float look);
+	~Camera();
 
-	DirectX::XMFLOAT4X4 GetViewMatrix();
-	DirectX::XMFLOAT4X4 GetProjectionMatrix();
+	XMFLOAT4X4 GetViewMatrix();
+	XMFLOAT4X4 GetProjMatrix();
+	Transform* GetTransform();
 
 	void UpdateProjectionMatrix(float aspectRatio);
 	void UpdateViewMatrix();
 	void Update(float dt, HWND windowHandle);
-	DirectX::XMFLOAT3 GetPos();
-private:
-	Transform transform;
-	
-	DirectX::XMFLOAT4X4 viewMatrix;
-	DirectX::XMFLOAT4X4 projectionMatrix;
-	
-	POINT previousMousePos;
-	
-	float FOV;
 
-	float nearClip;
-	float farClip;
+private:
+	XMFLOAT4X4 view;
+	XMFLOAT4X4 proj;
+
+	POINT prevMousePos;
+
+	Transform* trans;
+
+	float FoV;
+	float nearClip = .01f;
+	float farClip = 1000.0f;
 	float moveSpeed;
-	float mouseLookSpeed;
+	float lookSpeed;
+
 };
 

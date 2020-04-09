@@ -1,17 +1,16 @@
-#include "Shared.hlsli"
+#include "ShaderIncludes.hlsli"
 
-cbuffer LightData : register(b0) 
-{
-	float3 camPos;
-	float specExponent;
-	DirectionalLight directionalLight1;
-	DirectionalLight directionalLight2;
-	DirectionalLight directionalLight3;
-	PointLight pointLight1;
-	PointLight pointLight2;
+cbuffer ExternalData : register(b0) {
+	DirectionalLight dirLight;
+	PointLight pntLight;
+	float3 AmbientColor;
+	float Specularity;
+	float3 cameraPosition;
 }
 
-Texture2D baseTexture : register(t0);
+// Texture-related resources
+Texture2D diffuseTexture	: register(t0);
+Texture2D normalMap			: register(t1);
 SamplerState samplerOptions : register(s0);
 
 // --------------------------------------------------------
@@ -25,17 +24,37 @@ SamplerState samplerOptions : register(s0);
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	// Just return the input color
-	// - This color (like most values passing through the rasterizer) is 
-	//   interpolated for each pixel between the corresponding vertices 
-	//   of the triangle we're rendering
-	float4 finalColor = float4(0,0,0,1);
-	float3 surfaceColor = baseTexture.Sample(samplerOptions, input.uv).rgb;
+	// Sample the texture to get a color and tint
+	float3 surfaceColor = diffuseTexture.Sample(samplerOptions, input.uv).rgb;
+	// surfaceColor *= input.color.rgb;
 
-	finalColor.rgb += CalculateLighting_Dir(surfaceColor, input.worldPos, input.normal, directionalLight1, camPos, specExponent);
-	finalColor.rgb += CalculateLighting_Dir(surfaceColor, input.worldPos, input.normal, directionalLight2, camPos, specExponent);
-	finalColor.rgb += CalculateLighting_Dir(surfaceColor, input.worldPos, input.normal, directionalLight3, camPos, specExponent);
-	finalColor.rgb += CalculateLighting_Point(surfaceColor, input.worldPos, input.normal, pointLight1, camPos, specExponent);
-	finalColor.rgb += CalculateLighting_Point(surfaceColor, input.worldPos, input.normal, pointLight2, camPos, specExponent);
-	return finalColor;
+	// Grab the normal map sample and UNPACK THE NORMAL
+	float3 normalFromMap = normalMap.Sample(samplerOptions, input.uv).rgb * 2 - 1;
+
+	// Simplify this code as you see fit
+	float3 T = input.tangent; // Must be normalized
+	T = normalize(T - input.normal * dot(T, input.normal));
+	// Gram-Schmidt orthogonalization
+	float3 B = cross(T, input.normal);
+	float3x3 TBN = float3x3(T, B, input.normal);
+
+	// Adjust and overwrite the existing normal
+	input.normal = normalize(mul(normalFromMap, TBN));
+
+	// DIRECTIONAL LIGHTS ---------------------------
+
+	// DL 1
+	float3 FinalDLColor = computeColor(input.normal, dirLight.Direction, input.worldPos, 
+		dirLight.DiffuseColor, cameraPosition, surfaceColor, dirLight.Intensity, Specularity);
+
+	// POINT LIGHT ---------------------------------
+	float3 pl_Direction = normalize(input.worldPos - pntLight.Position);
+	float3 FinalPLColor = computeColor(input.normal, pl_Direction, input.worldPos, pntLight.Color, 
+		cameraPosition, surfaceColor, pntLight.Intensity, Specularity);
+	FinalPLColor *= computeAttentuation(pntLight.Position, input.worldPos, pntLight.Range);
+
+	// FINAL LIGHT ---------------------------------
+	float3 finalLight = AmbientColor + FinalDLColor + FinalPLColor;
+
+	return float4(finalLight , 1);
 }

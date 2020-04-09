@@ -1,25 +1,42 @@
 #include "Mesh.h"
 
-Mesh::Mesh(Vertex* vertexArray, int vertexCount, UINT* indexArray, int indexCount, Microsoft::WRL::ComPtr<ID3D11Device> device)
+// For the DirectX Math library
+using namespace DirectX;
+using namespace std;
+
+Mesh::Mesh(Vertex* points, int vertCount, UINT* indices, int indicesCount, 
+	Microsoft::WRL::ComPtr<ID3D11Device> object, Microsoft::WRL::ComPtr<ID3D11DeviceContext> objConX)
 {
-	this->indexCount = indexCount;
-	CalculateTangents(vertexArray, vertexCount, indexArray, indexCount);
-	CreateBuffers(vertexArray, vertexCount, indexArray, indexCount, device);
+	vertices = points;
+	vertexCount = vertCount;
+
+	device = object;
+	context = objConX;
+	
+	indxArr = indices;
+	indexCount = indicesCount;
+
+	CalculateTangents(vertices, vertexCount, indxArr, indexCount);
+
+	CreateVertexBuffer();
+	CreateIndexBuffer();
 }
 
-Mesh::Mesh(const char* fileName, Microsoft::WRL::ComPtr<ID3D11Device> device)
+Mesh::Mesh(Microsoft::WRL::ComPtr<ID3D11Device> mainDevice, 
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext>objContX, const char* filePath)
 {
+
 	// File input object
-	std::ifstream obj(fileName);
+	std::ifstream obj(filePath);
 
 	// Check for successful open
-	if (!obj.is_open())
+	if (!obj.is_open()) {
 		return;
-
+	}
 	// Variables used while reading the file
-	std::vector<DirectX::XMFLOAT3> positions;     // Positions from the file
-	std::vector<DirectX::XMFLOAT3> normals;       // Normals from the file
-	std::vector<DirectX::XMFLOAT2> uvs;           // UVs from the file
+	std::vector<XMFLOAT3> positions;     // Positions from the file
+	std::vector<XMFLOAT3> normals;       // Normals from the file
+	std::vector<XMFLOAT2> uvs;           // UVs from the file
 	std::vector<Vertex> verts;           // Verts we're assembling
 	std::vector<UINT> indices;           // Indices of these verts
 	unsigned int vertCounter = 0;        // Count of vertices/indices
@@ -35,7 +52,7 @@ Mesh::Mesh(const char* fileName, Microsoft::WRL::ComPtr<ID3D11Device> device)
 		if (chars[0] == 'v' && chars[1] == 'n')
 		{
 			// Read the 3 numbers directly into an XMFLOAT3
-			DirectX::XMFLOAT3 norm;
+			XMFLOAT3 norm;
 			sscanf_s(
 				chars,
 				"vn %f %f %f",
@@ -47,7 +64,7 @@ Mesh::Mesh(const char* fileName, Microsoft::WRL::ComPtr<ID3D11Device> device)
 		else if (chars[0] == 'v' && chars[1] == 't')
 		{
 			// Read the 2 numbers directly into an XMFLOAT2
-			DirectX::XMFLOAT2 uv;
+			XMFLOAT2 uv;
 			sscanf_s(
 				chars,
 				"vt %f %f",
@@ -59,7 +76,7 @@ Mesh::Mesh(const char* fileName, Microsoft::WRL::ComPtr<ID3D11Device> device)
 		else if (chars[0] == 'v')
 		{
 			// Read the 3 numbers directly into an XMFLOAT3
-			DirectX::XMFLOAT3 pos;
+			XMFLOAT3 pos;
 			sscanf_s(
 				chars,
 				"v %f %f %f",
@@ -167,63 +184,96 @@ Mesh::Mesh(const char* fileName, Microsoft::WRL::ComPtr<ID3D11Device> device)
 	}
 
 	// Close the file and create the actual buffers
+	device = mainDevice;
+	context = objContX;
+
+	vertices = &verts[0];
+	vertexCount = vertCounter;
+	
+	indxArr = &indices[0];
+	indexCount = vertCounter;
+	
+	CalculateTangents(vertices, vertexCount, indxArr, indexCount);
+
+	CreateVertexBuffer();
+	CreateIndexBuffer();
+	
 	obj.close();
-
-	this->indexCount = vertCounter;
-
-	CalculateTangents(&verts[0], vertCounter, &indices[0], vertCounter);
-
-	CreateBuffers(&verts[0], vertCounter, &indices[0], vertCounter, device);
-
-	// - At this point, "verts" is a vector of Vertex structs, and can be used
-	//    directly to create a vertex buffer:  &verts[0] is the address of the first vert
-	//
-	// - The vector "indices" is similar. It's a vector of unsigned ints and
-	//    can be used directly for the index buffer: &indices[0] is the address of the first int
-	//
-	// - "vertCounter" is BOTH the number of vertices and the number of indices
-	// - Yes, the indices are a bit redundant here (one per vertex).  Could you skip using
-	//    an index buffer in this case?  Sure!  Though, if your mesh class assumes you have
-	//    one, you'll need to write some extra code to handle cases when you don't.
 }
 
-
-void Mesh::CreateBuffers(Vertex* vertexArray, int vertexCount, UINT* indexArray, int indexCount, Microsoft::WRL::ComPtr<ID3D11Device> device)
+Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetVertexBuffer()
 {
-	this->indexCount = indexCount;
+	return verBuff;
+}
 
-	// Create the VERTEX BUFFER -----------------------------------
+void Mesh::CreateVertexBuffer()
+{
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex) * vertexCount;
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbd.ByteWidth = sizeof(Vertex) * GetVertexCount();       // number of vertices in the buffer
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Tells DirectX this is a vertex buffer
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 
+	// Create the proper struct to hold the initial vertex data
+	// - This is how we put the initial data into the buffer
 	D3D11_SUBRESOURCE_DATA initialVertexData;
-	initialVertexData.pSysMem = vertexArray;
+	initialVertexData.pSysMem = vertices;
 
-	device->CreateBuffer(&vbd, &initialVertexData, vertexBuffer.GetAddressOf());
-	// -------------------------------------------------------------
+	// Actually create the buffer with the initial data
+	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
 
+	device->CreateBuffer(&vbd, &initialVertexData,verBuff.GetAddressOf());
+}
 
-	// Create the INDEX BUFFER description ------------------------------------
+Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetIndexBuffer()
+{
+	return indBuff;
+}
+
+void Mesh::CreateIndexBuffer()
+{
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(int) * indexCount;
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ibd.ByteWidth = sizeof(int) * GetIndexCount();         // number of indices in the buffer
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER; // Tells DirectX this is an index buffer
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
 	ibd.StructureByteStride = 0;
 
+	// Create the proper struct to hold the initial index data
+	// - This is how we put the initial data into the buffer
 	D3D11_SUBRESOURCE_DATA initialIndexData;
-	initialIndexData.pSysMem = indexArray;
+	initialIndexData.pSysMem = indxArr;
 
-	device->CreateBuffer(&ibd, &initialIndexData, indexBuffer.GetAddressOf());
-	// -------------------------------------------------------------------------
+	// Actually create the buffer with the initial data
+	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
+	device->CreateBuffer(&ibd, &initialIndexData, indBuff.GetAddressOf());
 }
 
+int Mesh::GetIndexCount()
+{
+	return indexCount;
+}
+
+int Mesh::GetVertexCount()
+{
+	return vertexCount;
+}
+
+void Mesh::SetBuffers()
+{
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	context->IASetVertexBuffers(0, 1, verBuff.GetAddressOf(), &stride, &offset);
+	context->IASetIndexBuffer(indBuff.Get(), DXGI_FORMAT_R32_UINT, 0);
+}
+
+void Mesh::DrawMesh()
+{
+	context->DrawIndexed(GetIndexCount(), 0, 0);
+}
 
 // Calculates the tangents of the vertices in a mesh
 // - Code originally adapted from: http://www.terathon.com/code/tangent.html
@@ -237,7 +287,7 @@ void Mesh::CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices,
 	// Reset tangents
 	for (int i = 0; i < numVerts; i++)
 	{
-		verts[i].Tangent = DirectX::XMFLOAT3(0, 0, 0);
+		verts[i].Tangent = XMFLOAT3(0, 0, 0);
 	}
 
 	// Calculate tangents one whole triangle at a time
@@ -292,8 +342,8 @@ void Mesh::CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices,
 	for (int i = 0; i < numVerts; i++)
 	{
 		// Grab the two vectors
-		DirectX::XMVECTOR normal = XMLoadFloat3(&verts[i].Normal);
-		DirectX::XMVECTOR tangent = XMLoadFloat3(&verts[i].Tangent);
+		XMVECTOR normal = XMLoadFloat3(&verts[i].Normal);
+		XMVECTOR tangent = XMLoadFloat3(&verts[i].Tangent);
 
 		// Use Gram-Schmidt orthogonalize
 		tangent = XMVector3Normalize(
@@ -302,19 +352,4 @@ void Mesh::CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices,
 		// Store the tangent
 		XMStoreFloat3(&verts[i].Tangent, tangent);
 	}
-}
-
-Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetVertexBuffer()
-{
-	return vertexBuffer;
-}
-
-Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetIndexBuffer()
-{
-	return indexBuffer;
-}
-
-int Mesh::GetIndexCount()
-{
-	return indexCount;
 }
