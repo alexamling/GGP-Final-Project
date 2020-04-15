@@ -10,7 +10,7 @@
 struct Vertex
 {
 	DirectX::XMFLOAT3 Position;	    // The position of the vertex
-	DirectX::XMFLOAT3 Normal;       // The normal of the vertex
-	DirectX::XMFLOAT3 Tangent;	    // The tangent of the vertex
-	DirectX::XMFLOAT2 UV;			// The uv of the vertex
+	DirectX::XMFLOAT3 Normal;
+	DirectX::XMFLOAT3 Tangent;
+	DirectX::XMFLOAT2 UV;
 };

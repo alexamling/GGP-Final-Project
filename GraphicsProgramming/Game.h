@@ -1,15 +1,15 @@
 #pragma once
 
 #include "DXCore.h"
+#include "Mesh.h"
+#include "GameEntity.h"
+#include "Camera.h"
+#include "Material.h"
 #include <DirectXMath.h>
 #include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
-#include "Mesh.h"
-#include "Entity.h"
-#include "Camera.h"
-#include "Vertex.h"
-#include "DirectionalLight.h"
-#include "PointLight.h"
-#include "SimpleShader.h"
+#include <memory>
+#include <vector>
+#include "light.h"
 #include "WICTextureLoader.h"
 
 class Game 
@@ -39,27 +39,35 @@ private:
 	//    Component Object Mode, which DirectX objects do
 	//  - More info here: https://github.com/Microsoft/DirectXTK/wiki/ComPtr
 
-	// Buffers to hold actual geometry data
-	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
+	std::unique_ptr<Camera> camera;
+
+	std::vector<GameEntity> entities;
 
 	// Shaders and shader-related constructs
 	SimplePixelShader* pixelShader;
 	SimpleVertexShader* vertexShader;
-	
-	Mesh* MeshOne; 
-	Mesh* MeshTwo;
-	Mesh* MeshThree;
-	
-	Entity* entityArr[5];
+	SimplePixelShader* pixelShader_Normals;
+	SimpleVertexShader* vertexShader_Normals;
+	//std::shared_ptr<SimplePixelShader> pixelShader;
+	//std::shared_ptr<SimpleVertexShader> vertexShader;
 
-	Camera* MainCamera;
+	Mesh* mesh1;
+	Mesh* mesh2;
 
-	DirectionalLight dirLight;
-	PointLight pntLight;
+	ID3D11ShaderResourceView* texture1;
+	ID3D11ShaderResourceView* texture2;
+	ID3D11ShaderResourceView* normalMap1;
+	ID3D11ShaderResourceView* normalMap2;
 
-	// Texture related resources
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerOptions;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+
+	DirectionalLight dirLight1;
+	DirectionalLight dirLight2;
+	DirectionalLight dirLight3;
+
+	PointLight pointLight1;
+	PointLight pointLight2;
+
+	float specExponent;
 };
+

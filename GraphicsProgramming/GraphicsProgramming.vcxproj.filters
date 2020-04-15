@@ -33,7 +33,7 @@
     <ClCompile Include="Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Entity.cpp">
+    <ClCompile Include="GameEntity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
@@ -62,7 +62,7 @@
     <ClInclude Include="Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Entity.h">
+    <ClInclude Include="GameEntity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
@@ -74,10 +74,7 @@
     <ClInclude Include="SimpleShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DirectionalLight.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PointLight.h">
+    <ClInclude Include="light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -88,10 +85,16 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PixelShader_Normals.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShader_Normals.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="ShaderIncludes.hlsli">
+    <None Include="Shared.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

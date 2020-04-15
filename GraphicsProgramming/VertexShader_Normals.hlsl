@@ -9,14 +9,15 @@ cbuffer ExternalData : register(b0)
 }
 
 // --------------------------------------------------------
-VertexToPixel main( VertexShaderInput input )
+VertexToPixel_Normals main( VertexShaderInput input )
 {
-	VertexToPixel output;
+	VertexToPixel_Normals output;
 	matrix wvp = mul(proj, mul(view, world));
 	output.position = mul(wvp, float4(input.position, 1.0f));
 	output.worldPos = mul(float4(input.position, 1.0f), world).xyz;
 	output.color = colorTint;
 	output.normal = mul((float3x3)world, input.normal); //TODO: change to use inverse transpose
+	output.tangent = mul((float3x3)world, input.tangent);
 	output.uv = input.uv;
 	return output;
 }

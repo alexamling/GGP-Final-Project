@@ -1,4 +1,6 @@
 #include "Game.h"
+#include "Vertex.h"
+#include "BufferStructs.h"
 
 // Needed for a helper function to read compiled shader files from the hard drive
 #pragma comment(lib, "d3dcompiler.lib")
@@ -29,7 +31,34 @@ Game::Game(HINSTANCE hInstance)
 	CreateConsoleWindow(500, 120, 32, 120);
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
+	mesh1 = nullptr;
+	mesh2 = nullptr;
+	pixelShader = nullptr;
+	vertexShader = nullptr;
+	texture1 = nullptr;
+	texture2 = nullptr;
+	specExponent = 32;
 
+	dirLight1.ambientColor = DirectX::XMFLOAT3(.0f, .0f, .0f);
+	dirLight1.diffuseColor = DirectX::XMFLOAT3(0, .5f, 0);
+	dirLight1.direction = DirectX::XMFLOAT3(1, 0, 0);
+
+	dirLight2.ambientColor = DirectX::XMFLOAT3(.0f, .0f, .0f);
+	dirLight2.diffuseColor = DirectX::XMFLOAT3(.5f, 0, 0);
+	dirLight2.direction = DirectX::XMFLOAT3(0, 0, 1);
+
+	dirLight3.ambientColor = DirectX::XMFLOAT3(.0f, .0f, .0f);
+	dirLight3.diffuseColor = DirectX::XMFLOAT3(0, .5f, 0);
+	dirLight3.direction = DirectX::XMFLOAT3(0, -1, 0);
+
+
+	pointLight1.ambientColor = DirectX::XMFLOAT3(.05f, .05f, .05f);
+	pointLight1.diffuseColor = DirectX::XMFLOAT3(.5f, 0, .5f);
+	pointLight1.position = DirectX::XMFLOAT3(-1, -1, -1);
+
+	pointLight2.ambientColor = DirectX::XMFLOAT3(.05f, .05f, .05f);
+	pointLight2.diffuseColor = DirectX::XMFLOAT3(0, .5f, .5f);
+	pointLight2.position = DirectX::XMFLOAT3(-1, -1, -1);
 }
 
 // --------------------------------------------------------
@@ -43,16 +72,12 @@ Game::~Game()
 	// we don't need to explicitly clean up those DirectX objects
 	// - If we weren't using smart pointers, we'd need
 	//   to call Release() on each DirectX object
-	delete vertexShader;
 	delete pixelShader;
-	delete MeshOne;
-	delete MeshTwo;
-	delete MeshThree;
-	for (int i = 0; i < 5; i++)
-	{
-		delete entityArr[i];
-	}
-	delete MainCamera;
+	delete vertexShader;
+	delete pixelShader_Normals;
+	delete vertexShader_Normals;
+	delete mesh1;
+	delete mesh2;
 }
 
 // --------------------------------------------------------
@@ -61,57 +86,37 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+
+	Transform camTransform = Transform();
+	camTransform.MoveAbsolute(0, 0, -5);
+	camera = std::make_unique<Camera>(Camera(camTransform, (float)this->width / this->height, 90, .01f, 100.0f, 1.0f, 5.0f));
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	LoadShaders();
 	CreateBasicGeometry();
 
+	pixelShader->SetData("directionalLight1", &dirLight1, sizeof(DirectionalLight));
+	pixelShader->SetData("directionalLight2", &dirLight2, sizeof(DirectionalLight));
+	pixelShader->SetData("directionalLight3", &dirLight3, sizeof(DirectionalLight));
+	pixelShader->SetData("pointLight1", &pointLight1, sizeof(PointLight));
+	pixelShader->SetData("pointLight2", &pointLight2, sizeof(PointLight));
+	pixelShader->SetData("specExponent", &specExponent, sizeof(float));
+	pixelShader->CopyAllBufferData();
+
+	pixelShader_Normals->SetData("directionalLight1", &dirLight1, sizeof(DirectionalLight));
+	pixelShader_Normals->SetData("directionalLight2", &dirLight2, sizeof(DirectionalLight));
+	pixelShader_Normals->SetData("directionalLight3", &dirLight3, sizeof(DirectionalLight));
+	pixelShader_Normals->SetData("pointLight1", &pointLight1, sizeof(PointLight));
+	pixelShader_Normals->SetData("pointLight2", &pointLight2, sizeof(PointLight));
+	pixelShader_Normals->SetData("specExponent", &specExponent, sizeof(float));
+	pixelShader_Normals->CopyAllBufferData();
+
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	XMVECTOR pos = XMVectorSet(0, 0, -5, 0);
-	XMVECTOR ori = XMVectorSet(0, 0, 0, 0);
-
-	MainCamera = new Camera(pos,ori,(float)(this->width/this->height), XM_PIDIV4,0.01f,100.0f,3.0f,2.0f);
-
-	dirLight.DiffuseColor = XMFLOAT3(0.8f, 0.8f, 0.8f);
-	dirLight.Direction = XMFLOAT3(0, 3, 0);
-	dirLight.Intensity = 1.0f;
-
-	pntLight.Color = XMFLOAT3(0.7f, 0.7f, 0.7f);
-	pntLight.Position = XMFLOAT3(0, 10, 5);
-	pntLight.Intensity = 1.0f;
-	pntLight.Range = 2.0f;
-
-	// Texture releated init
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),	// Passing in the context auto-generates mipmaps!!
-		GetFullPathTo_Wide(L"../../Assets/Textures/brick.png").c_str(),
-		nullptr,		// We don't need the texture ref ourselves
-		diffuseTexture.GetAddressOf()); // We do need an SRV
-
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),	// Passing in the context auto-generates mipmaps!!
-		GetFullPathTo_Wide(L"../../Assets/Textures/brick_normal.png").c_str(),
-		nullptr,		// We don't need the texture ref ourselves
-		normalMap.GetAddressOf()); // We do need an SRV
-
-
-	// Describe the sampler state that I want
-	D3D11_SAMPLER_DESC sampDesc = {};
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	sampDesc.MaxAnisotropy = 16;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	device->CreateSamplerState(&sampDesc, samplerOptions.GetAddressOf());
-
 }
 
 // --------------------------------------------------------
@@ -124,8 +129,20 @@ void Game::Init()
 // --------------------------------------------------------
 void Game::LoadShaders()
 {
-	vertexShader = new SimpleVertexShader(device.Get(), context.Get(), GetFullPathTo_Wide(L"VertexShader.cso").c_str()); 
-	pixelShader = new SimplePixelShader(device.Get(), context.Get(), GetFullPathTo_Wide(L"PixelShader.cso").c_str());
+	vertexShader = new SimpleVertexShader(device.Get(), context.Get(),
+		GetFullPathTo_Wide(L"VertexShader.cso").c_str());
+	pixelShader = new SimplePixelShader(device.Get(), context.Get(),
+		GetFullPathTo_Wide(L"PixelShader.cso").c_str());
+	vertexShader_Normals = new SimpleVertexShader(device.Get(), context.Get(),
+		GetFullPathTo_Wide(L"VertexShader_Normals.cso").c_str());
+	pixelShader_Normals = new SimplePixelShader(device.Get(), context.Get(),
+		GetFullPathTo_Wide(L"PixelShader_Normals.cso").c_str());
+	/*
+	vertexShader = std::make_shared<SimpleVertexShader>(device.Get(), context.Get(),
+		GetFullPathTo_Wide(L"VertexShader.cso").c_str());
+	pixelShader = std::make_shared<SimplePixelShader>(device.Get(), context.Get(),
+		GetFullPathTo_Wide(L"PixelShader.cso").c_str());
+	*/
 }
 
 
@@ -135,44 +152,40 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	// Create some temporary variables to represent normals and UV
+	DirectX::CreateWICTextureFromFile(device.Get(), context.Get(), GetFullPathTo_Wide(L"../../../Assets/Textures/TexturesCom_BrickMessy0005_1_seamless_S.jpg").c_str(), nullptr, &texture1);
+	DirectX::CreateWICTextureFromFile(device.Get(), context.Get(), GetFullPathTo_Wide(L"../../../Assets/Textures/cushion.png").c_str(), nullptr, &texture2);
+	DirectX::CreateWICTextureFromFile(device.Get(), context.Get(), GetFullPathTo_Wide(L"../../../Assets/Textures/cushion_normals.png").c_str(), nullptr, &normalMap2);
+
+	D3D11_SAMPLER_DESC desc = {};
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.MaxLOD = D3D11_FLOAT32_MAX;
+	desc.Filter = D3D11_FILTER_ANISOTROPIC;
+	desc.MaxAnisotropy = 8;
+	device->CreateSamplerState(&desc, samplerState.GetAddressOf());
+
+	Material mat1 = Material(pixelShader, vertexShader, texture1, nullptr, samplerState.Get(), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	Material mat2 = Material(pixelShader_Normals, vertexShader_Normals, texture2, normalMap2, samplerState.Get(), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+
+	mesh1 = new Mesh(GetFullPathTo("../../../Assets/Models/sphere.obj").c_str(), device);
+	mesh2 = new Mesh(GetFullPathTo("../../../Assets/Models/helix.obj").c_str(), device);
+
+	// Create a color to default to -----------------------------------
+	DirectX::XMFLOAT4 defaultColor = DirectX::XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f);
+
+	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
-	XMFLOAT3 tempNormal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-	XMFLOAT3 tempTangent = XMFLOAT3(0.0f, 0.0f, 1.0f);
-	XMFLOAT2 tempUV = XMFLOAT2(0.0f,0.0f);
+	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
-	MeshOne = new Mesh(device, context, GetFullPathTo("../../Assets/Models/helix.obj").c_str());
 
-	//Smaller Triangle
-	MeshTwo = new Mesh(device,context,GetFullPathTo("../../Assets/Models/sphere.obj").c_str());
-
-	Vertex vertices[] =
-	{
-		{ XMFLOAT3(-10.0f, -2.0f, -10.0f), tempNormal, tempTangent, tempUV },
-		{ XMFLOAT3(-10.0f, -2.0f, +10.0f), tempNormal, tempTangent, tempUV },
-		{ XMFLOAT3(+10.0f, -2.0f, +10.0f), tempNormal, tempTangent, tempUV },
-		{ XMFLOAT3(+10.0f, -2.0f, -10.0f), tempNormal, tempTangent, tempUV }
-	};
-
-	UINT indices2[] = {0,1,3,1,2,3};
-	//This one is a square
-	MeshThree = new Mesh(vertices, 4, indices2, 6, device, context);
-
-	XMFLOAT4 red = XMFLOAT4(0.7f, 0.0f, 0.0f, 0.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 0.7f, 0.0f, 0.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.1f, 0.1f, 0.7f, 0.0f);
-	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-	XMFLOAT4 white = XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f);
-
-	entityArr[0] = new Entity(MeshOne, pixelShader, 10.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions);
-	entityArr[0]->GetTransform()->SetScale(0.25f, 0.25f, 0.25f);
-	entityArr[1] = new Entity(MeshOne, pixelShader, 64.0f, vertexShader, red, diffuseTexture, normalMap, samplerOptions);
-	entityArr[1]->GetTransform()->SetScale(0.25f, 0.25f, 0.25f);
-
-	entityArr[2] = new Entity(MeshTwo, pixelShader, 45.0f, vertexShader, green, diffuseTexture, normalMap, samplerOptions);
-	entityArr[3] = new Entity(MeshTwo, pixelShader, 64.0f, vertexShader, blue, diffuseTexture, normalMap, samplerOptions);
-	entityArr[4] = new Entity(MeshThree, pixelShader, 64.0f, vertexShader, black, diffuseTexture, normalMap, samplerOptions);
-
+	entities.push_back(GameEntity(mesh1, &mat1));
+	//entities.push_back(GameEntity(mesh1, &mat1));
+	entities.push_back(GameEntity(mesh2, &mat2));
+	//entities.push_back(GameEntity(mesh2, &mat2));
+	//entities.push_back(GameEntity(mesh2, &mat2));
 }
 
 
@@ -183,8 +196,8 @@ void Game::CreateBasicGeometry()
 void Game::OnResize()
 {
 	// Handle base-level DX resize stuff
+	if (camera != nullptr) camera->UpdateProjectionMatrix((float)this->width / this->height);
 	DXCore::OnResize();
-	MainCamera->UpdateProjectionMatrix((float)(this->width/this->height));
 }
 
 // --------------------------------------------------------
@@ -192,17 +205,17 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-
-	entityArr[0]->GetTransform()->SetPosition(cos(totalTime)*2,0,0);
-	entityArr[0]->GetTransform()->Rotate(deltaTime, 0, 0);
-	//entityArr[1]->GetTransform()->Rotate(0, deltaTime, 0);
-	entityArr[2]->GetTransform()->SetPosition(cos(totalTime),0,sin(totalTime));
-	entityArr[3]->GetTransform()->SetPosition(-cos(totalTime), sin(totalTime), 0);
-	MainCamera->Update(deltaTime,this->hWnd);
-
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+
+	entities[0].GetTransform()->Rotate(0, 0, .1f * deltaTime);
+	entities[0].GetTransform()->MoveAbsolute(-.01f * deltaTime, 0, 0);
+	entities[1].GetTransform()->MoveAbsolute(.01f * deltaTime, 0, 0);
+	//entities[2].GetTransform()->Rotate(0, -.1f * deltaTime, 0);
+	//entities[3].GetTransform()->MoveAbsolute(-.01f * deltaTime, 0, 0);
+
+	camera->Update(deltaTime, this->hWnd);
 }
 
 // --------------------------------------------------------
@@ -211,7 +224,7 @@ void Game::Update(float deltaTime, float totalTime)
 void Game::Draw(float deltaTime, float totalTime)
 {
 	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = { 0.4f, 0.5f, 0.9f, 0.0f };
+	const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
@@ -224,36 +237,45 @@ void Game::Draw(float deltaTime, float totalTime)
 		0);
 
 
-	// Set the vertex and pixel shaders to use for the next Draw() command
-	//  - These don't technically need to be set every frame
-	//  - Once you start applying different shaders to different objects,
-	//    you'll need to swap the current shaders before each draw
-	vertexShader->SetShader();
-	pixelShader->SetShader();
+	// Set buffers in the input assembler
+	//  - Do this ONCE PER OBJECT you're drawing, since each object might
+	//    have different geometry.
+	//  - for this demo, this step *could* simply be done once during Init(),
+	//    but I'm doing it here because it's often done multiple times per frame
+	//    in a larger application/game
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
 
-	pixelShader->SetData("dirLight",	// The name of the (eventual) variable in the shader
-		&dirLight,									// The address of the data to set 
-		sizeof(DirectionalLight));				// The size of the data to set
-
-	pixelShader->SetData("pntLight",	// The name of the (eventual) variable in the shader
-		&pntLight,									// The address of the data to set 
-		sizeof(PointLight));				// The size of the data to set
-
-	pixelShader->SetFloat3("AmbientColor",XMFLOAT3(0.1f, 0.1f, 0.1f));
-	pixelShader->SetFloat3("cameraPosition", MainCamera->GetTransform()->GetPosition());
-
-	// Set texture resources for the next draw
-	pixelShader->SetShaderResourceView("diffuseTexture", diffuseTexture.Get());
-	pixelShader->SetShaderResourceView("normalMap", normalMap.Get());
-	pixelShader->SetSamplerState("samplerOptions", samplerOptions.Get());
-
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < entities.size(); i++)
 	{
-		pixelShader->SetFloat("Specularity", entityArr[i]->GetMaterial()->GetSpec());
-		pixelShader->CopyAllBufferData();
-		entityArr[i]->Draw(MainCamera);
-	}
+		SimpleVertexShader* vs = entities[i].GetMaterial()->GetVertexShader();
+		vs->SetFloat4("colorTint", entities[i].GetMaterial()->GetTint());
+		vs->SetMatrix4x4("world", entities[i].GetTransform()->GetWorldMatrix());
+		vs->SetMatrix4x4("view", camera.get()->GetViewMatrix());
+		vs->SetMatrix4x4("proj", camera.get()->GetProjectionMatrix());
+		vs->CopyAllBufferData();
 
+		SimplePixelShader* ps = entities[i].GetMaterial()->GetPixelShader();
+		ps->SetSamplerState("samplerOptions", entities[i].GetMaterial()->GetSampler());
+		ps->SetShaderResourceView("baseTexture", entities[i].GetMaterial()->GetTexture());
+		if (entities[i].GetMaterial()->HasNormals()) 
+		{
+			ps->SetShaderResourceView("normalMap", entities[i].GetMaterial()->GetNormalMap());
+		}
+		ps->SetData("camPos", &camera.get()->GetPos(), sizeof(DirectX::XMFLOAT3));
+		ps->CopyAllBufferData();
+
+		entities[i].GetMaterial()->GetVertexShader()->SetShader();
+		entities[i].GetMaterial()->GetPixelShader()->SetShader();
+
+		context->IASetVertexBuffers(0, 1, entities[i].GetMesh()->GetVertexBuffer().GetAddressOf(), &stride, &offset);
+		context->IASetIndexBuffer(entities[i].GetMesh()->GetIndexBuffer().Get(), DXGI_FORMAT_R32_UINT, 0);
+
+		context->DrawIndexed(
+			entities[i].GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted) TODO: CHANGE THIS WHEN ADDING NEW OBJECTS
+			0,     // Offset to the first index we want to use
+			0);    // Offset to add to each index when looking up vertices
+	}
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it

@@ -1,57 +1,60 @@
 #include "Material.h"
 
-Material::Material(XMVECTOR tint, float spec, SimplePixelShader* pixShd, SimpleVertexShader* verShd, 
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffText, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> nMap,
-    Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt)
+Material::Material(SimplePixelShader *pixelShader, SimpleVertexShader *vertexShader, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* normalMap, ID3D11SamplerState* sampler, DirectX::XMFLOAT4 tint)
 {
-    XMStoreFloat4(&colorTint, tint);
+	this->pixelShader = pixelShader;
+	this->vertexShader = vertexShader;
+	this->texture = texture;
+	this->sampler = sampler;
+	this->tint = tint;
 
-    specular = spec;
-
-    pixelShader = pixShd;
-    vertexShader = verShd;
-
-    diffuseTexture = diffText;
-    normalMap = nMap;
-
+	if (normalMap == nullptr) 
+	{
+		hasNormals = false;
+	}
+	else 
+	{
+		hasNormals = true;
+		this->normalMap = normalMap;
+	}
 }
 
-SimplePixelShader* Material::GetPixelShader()
+DirectX::XMFLOAT4 Material::GetTint()
 {
-    return pixelShader;
+	return tint;
+}
+
+void Material::SetTint(DirectX::XMFLOAT4 tint)
+{
+	this->tint = tint;
 }
 
 SimpleVertexShader* Material::GetVertexShader()
 {
-    return vertexShader;
+	return vertexShader;
 }
 
-void Material::SetColorTint(XMVECTOR tint)
+SimplePixelShader* Material::GetPixelShader()
 {
-    XMStoreFloat4(&colorTint, tint);
+	return pixelShader;
 }
 
-XMFLOAT4 Material::GetColorTint()
+ID3D11ShaderResourceView* Material::GetTexture()
 {
-    return colorTint;
+	return texture.Get();
 }
 
-void Material::SetSpec(float spec)
+ID3D11ShaderResourceView* Material::GetNormalMap()
 {
-    specular = spec;
+	return normalMap.Get();;
 }
 
-float Material::GetSpec()
+ID3D11SamplerState* Material::GetSampler()
 {
-    return specular;
+	return sampler.Get();
 }
 
-void Material::SetDiffuseTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffText)
+bool Material::HasNormals()
 {
-    diffuseTexture = diffText;
-}
-
-Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Material::GetDiffuseTexure()
-{
-    return diffuseTexture;
+	return hasNormals;
 }

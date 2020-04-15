@@ -1,8 +1,5 @@
 #pragma once
-#include "DXCore.h"
 #include <DirectXMath.h>
-
-using namespace DirectX;
 
 class Transform
 {
@@ -13,23 +10,20 @@ public:
 	void SetRotation(float pitch, float yaw, float roll);
 	void SetScale(float x, float y, float z);
 
-	XMFLOAT3 GetPosition();
-	XMFLOAT3 GetPitchYawRoll();
-	XMFLOAT3 GetScale();
-	XMFLOAT4X4 GetWorldMatrix();
+	DirectX::XMFLOAT3 GetPosition();
+	DirectX::XMFLOAT3 GetRotation();
+	DirectX::XMFLOAT3 GetScale();
+	DirectX::XMFLOAT4X4 GetWorldMatrix();
 
 	void MoveAbsolute(float x, float y, float z);
 	void MoveRelative(float x, float y, float z);
 	void Rotate(float pitch, float yaw, float roll);
 	void Scale(float x, float y, float z);
-
-	void UpdateMatrix();
-
 private:
-	//Raw variable data
-	XMFLOAT4X4 world;
-	XMFLOAT3 position;
-	XMFLOAT3 scale;
-	XMFLOAT3 pitchYawRoll;
+	bool upToDate;
+	DirectX::XMFLOAT4X4 worldMatrix;
+	DirectX::XMFLOAT3 position;
+	DirectX::XMFLOAT3 rotation;
+	DirectX::XMFLOAT3 scale;
 };
 

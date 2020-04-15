@@ -1,42 +1,33 @@
 #pragma once
-
-#include <wrl/client.h>
-#include "DXCore.h"
 #include <DirectXMath.h>
+#include "DXCore.h"
+#include <wrl/client.h>
 #include "SimpleShader.h"
-
-using namespace DirectX;
+#include <memory>
 
 class Material
 {
 public:
-	Material(XMVECTOR tint, float spec, SimplePixelShader* pixelShader, SimpleVertexShader* vertexShader, 
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
-		Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerOptions);
+	Material(SimplePixelShader *pixelShader, SimpleVertexShader *vertexShader,ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* normalMap, ID3D11SamplerState* sampler, DirectX::XMFLOAT4 tint);
 
-	SimplePixelShader* GetPixelShader();
+	DirectX::XMFLOAT4 GetTint();
+	void SetTint(DirectX::XMFLOAT4);
 	SimpleVertexShader* GetVertexShader();
-
-	void SetColorTint(XMVECTOR tint);
-	XMFLOAT4 GetColorTint();
-
-	void SetSpec(float spec);
-	float GetSpec();
-
-	void SetDiffuseTexture(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture);
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> GetDiffuseTexure();
-
+	SimplePixelShader* GetPixelShader();
+	ID3D11ShaderResourceView* GetTexture();
+	ID3D11ShaderResourceView* GetNormalMap();
+	ID3D11SamplerState* GetSampler();
+	bool HasNormals();
 
 private:
-	XMFLOAT4 colorTint;
-	float specular;
-
-	// Shaders and shader-related constructs
-	SimplePixelShader* pixelShader;
-	SimpleVertexShader* vertexShader;
-
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture;
+	SimpleVertexShader *vertexShader;
+	SimplePixelShader *pixelShader;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texture;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerOptions;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler;
+	//std::shared_ptr<SimpleVertexShader> vertexShader;
+	//std::shared_ptr<SimplePixelShader> pixelShader;
+	DirectX::XMFLOAT4 tint;
+	bool hasNormals;
 };
 
