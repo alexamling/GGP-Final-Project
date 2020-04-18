@@ -93,7 +93,7 @@ void Game::Init()
 
 	dirLight.DiffuseColor = XMFLOAT3(0.8f, 0.8f, 0.8f);
 	dirLight.Direction = XMFLOAT3(1,-1, 0);
-	dirLight.Intensity = 1.0f;
+	dirLight.Intensity = 10.0f;
 
 	pntLight.Color = XMFLOAT3(0.7f, 0.7f, 0.7f);
 	pntLight.Intensity = 1.0f;
@@ -171,7 +171,6 @@ void Game::LoadShaders()
 	vertexShader = new SimpleVertexShader(device.Get(), context.Get(), GetFullPathTo_Wide(L"VertexShader.cso").c_str()); 
 	pixelShader = new SimplePixelShader(device.Get(), context.Get(), GetFullPathTo_Wide(L"PixelShader.cso").c_str());
 	skyVS = new SimpleVertexShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"SkyVS.cso").c_str());
-
 	skyPS = new SimplePixelShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"SkyPS.cso").c_str());
 }
 
@@ -352,6 +351,7 @@ void Game::RenderSky()
 	skyPS->SetSamplerState("samplerOptions", samplerOptions.Get());
 
 	// Actually draw the geometry
+	skyMesh->SetBuffers();
 	skyMesh->DrawMesh();
 
 	// Reset any states back to the default
