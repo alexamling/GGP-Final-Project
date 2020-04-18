@@ -48,10 +48,6 @@ Game::~Game()
 	delete MeshOne;
 	delete MeshTwo;
 	delete MeshThree;
-
-	delete skyVS;
-	delete skyPS;
-
 	for (int i = 0; i < asteroids.size(); i++)
 	{
 		delete asteroids[i];
@@ -93,7 +89,7 @@ void Game::Init()
 
 	dirLight.DiffuseColor = XMFLOAT3(0.8f, 0.8f, 0.8f);
 	dirLight.Direction = XMFLOAT3(1,-1, 0);
-	dirLight.Intensity = 1.0f;
+	dirLight.Intensity = 10.0f;
 
 	pntLight.Color = XMFLOAT3(0.7f, 0.7f, 0.7f);
 	pntLight.Intensity = 1.0f;
@@ -130,18 +126,17 @@ void Game::Init()
 	spriteFont = std::make_unique<SpriteFont>(device.Get(), GetFullPathTo_Wide(L"../../Assets/Fonts/Arial.spritefont").c_str());
 
 	// Prepare our sky resources ----------------------------
-	skyMesh = MeshThree; // This is the CUBE mesh, which is already loaded in CreateBasicGeometry()
+	skyMesh = MeshThree;
 
-	// Example of using the CreateCubemap helper to load 6 individual textures
 	skySRV = CreateCubemap(
-		GetFullPathTo_Wide(L"../../Assets/Skies/Stars/right.png").c_str(),
-		GetFullPathTo_Wide(L"../../Assets/Skies/Stars/left.png").c_str(),
-		GetFullPathTo_Wide(L"../../Assets/Skies/Stars/up.png").c_str(),
-		GetFullPathTo_Wide(L"../../Assets/Skies/Stars/down.png").c_str(),
-		GetFullPathTo_Wide(L"../../Assets/Skies/Stars/forward.png").c_str(),
-		GetFullPathTo_Wide(L"../../Assets/Skies/Stars/back.png").c_str());
+		GetFullPathTo_Wide(L"../../Assets/Stars/right.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/left.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/up.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/down.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/forward.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/back.png").c_str());
 
-		// Make the sky rasterizer state
+	// Make the sky rasterizer state
 	D3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.FillMode = D3D11_FILL_SOLID;
 	rastDesc.CullMode = D3D11_CULL_FRONT;
@@ -154,8 +149,6 @@ void Game::Init()
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&dsDesc, skyDepthState.GetAddressOf());
-
-
 }
 
 // --------------------------------------------------------
@@ -171,7 +164,6 @@ void Game::LoadShaders()
 	vertexShader = new SimpleVertexShader(device.Get(), context.Get(), GetFullPathTo_Wide(L"VertexShader.cso").c_str()); 
 	pixelShader = new SimplePixelShader(device.Get(), context.Get(), GetFullPathTo_Wide(L"PixelShader.cso").c_str());
 	skyVS = new SimpleVertexShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"SkyVS.cso").c_str());
-
 	skyPS = new SimplePixelShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"SkyPS.cso").c_str());
 }
 
@@ -190,19 +182,8 @@ void Game::CreateBasicGeometry()
 
 	MeshOne = new Mesh(device, context, GetFullPathTo("../../Assets/Models/sphere.obj").c_str());
 
-	//Smaller Triangle
 	MeshTwo = new Mesh(device,context,GetFullPathTo("../../Assets/Models/helix.obj").c_str());
 
-	/*Vertex vertices[] =
-	{
-		{ XMFLOAT3(-10.0f, -2.0f, -10.0f), tempNormal, tempTangent, tempUV },
-		{ XMFLOAT3(-10.0f, -2.0f, +10.0f), tempNormal, tempTangent, tempUV },
-		{ XMFLOAT3(+10.0f, -2.0f, +10.0f), tempNormal, tempTangent, tempUV },
-		{ XMFLOAT3(+10.0f, -2.0f, -10.0f), tempNormal, tempTangent, tempUV }
-	};
-
-	UINT indices2[] = {0,1,3,1,2,3};*/
-	//This one is a cube
 	MeshThree = new Mesh(device, context, GetFullPathTo("../../Assets/Models/cube.obj").c_str());
 
 	XMFLOAT4 red = XMFLOAT4(0.7f, 0.0f, 0.0f,0);
@@ -222,8 +203,39 @@ void Game::CreateBasicGeometry()
 		vel.x = (rand() % 2) - 1;
 		vel.y = (rand() % 2) - 1;
 		vel.z = (rand() % 2) - 1;
-		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 0.75f, vertexShader, white, diffuseTexture, normalMap, samplerOptions, pos, vel));
+		asteroids.push_back(new Asteroid(
+			MeshOne, pixelShader, 10.0f, 0.75f, 
+			vertexShader, white, 
+			diffuseTexture, normalMap, 
+			samplerOptions, pos, vel));
 	}
+}
+
+bool Game::SplitAsteroid(int index)
+{
+	bool split = asteroids[index]->Split();
+	if (split)
+	{
+		XMFLOAT3 vel;
+		vel.x = (rand() % 2) - 1;
+		vel.y = (rand() % 2) - 1;
+		vel.z = (rand() % 2) - 1;
+		// create new asteroid from old asteroid
+		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 0.75f, 
+			vertexShader, XMFLOAT4(0.7f, 0.7f, 0.7f,0),
+			diffuseTexture, normalMap, 
+			samplerOptions, asteroids[index]->GetTransform()->GetPosition(), vel, asteroids[index]->asteroidSize));
+		// change asteroid velocity
+		vel.x *= -1;
+		vel.y *= -1;
+		vel.z *= -1;
+		asteroids[index]->SetVelocity(vel);
+	}
+	else
+	{
+		asteroids.erase(asteroids.begin() + index);
+	}
+	return split;
 }
 
 
@@ -352,6 +364,7 @@ void Game::RenderSky()
 	skyPS->SetSamplerState("samplerOptions", samplerOptions.Get());
 
 	// Actually draw the geometry
+	skyMesh->SetBuffers();
 	skyMesh->DrawMesh();
 
 	// Reset any states back to the default
@@ -371,6 +384,10 @@ void Game::Update(float deltaTime, float totalTime)
 	for (int i = 0; i < asteroids.size(); i++) 
 	{
 		asteroids[i]->Update(deltaTime,XMLoadFloat3(&MainCamera->GetTransform()->GetPosition()),0.75f);
+		if (asteroids[i]->colliding)
+		{
+			SplitAsteroid(i);
+		}
 	}
 
 	MainCamera->Update(deltaTime,this->hWnd);
@@ -395,8 +412,8 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	// Background color for clearing
-	const float color[4] = { 0, 0, 0, 1 };
+	// Background color (Cornflower Blue in this case) for clearing
+	const float color[4] = { 0.4f, 0.5f, 0.9f, 0.0f };
 
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
@@ -446,6 +463,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		bullets[i]->Draw(MainCamera);
 	}
 
+	RenderSky();
+
 	// === SpriteBatch =====================================
 	// See these links for more info!
 	// SpriteBatch: https://github.com/microsoft/DirectXTK/wiki/SpriteBatch
@@ -480,9 +499,6 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->OMSetDepthStencilState(0, 0);
 	}
 	// ======================================================
-
-	// Render the sky AFTER all opaque (solid) geometry has been rendered
-	RenderSky();
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it

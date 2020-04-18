@@ -41,15 +41,16 @@ private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
 	void CreateBasicGeometry();
-	void SpawnAsteroids();
+	bool SplitAsteroid(int index);
 	void RenderSky();
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CreateCubemap(const wchar_t* right,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> CreateCubemap(
+		const wchar_t* right,
 		const wchar_t* left,
 		const wchar_t* up,
 		const wchar_t* down,
 		const wchar_t* front,
 		const wchar_t* back);
-
+	
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
 	//    Component Object Mode, which DirectX objects do
@@ -86,17 +87,11 @@ private:
 
 	// Sky resources
 	Mesh* skyMesh;
-	SimpleVertexShader* skyVS;
 	SimplePixelShader* skyPS;
+	SimpleVertexShader* skyVS;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skySRV;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> skyRasterState;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> skyDepthState;
-
-	// Post processing resources
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> ppRTV;		// Allows us to render to a texture
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ppSRV;		// Allows us to sample from the same texture
-	SimpleVertexShader* ppVS;
-	SimplePixelShader* ppPS;
 
 	//variable for game score
 	float score;

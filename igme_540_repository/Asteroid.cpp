@@ -5,15 +5,40 @@ Asteroid::Asteroid(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float
 {
 	asteroidSize = size;
 	entityTrans->SetPosition(position.x, position.y, position.z);
+	float newScale = .3f * asteroidSize;
+	entityTrans->SetScale(newScale, newScale, newScale);
+	radius = .75f * newScale;
 	entityVelocity = velocity;
 }
 
-void Asteroid::Split(Asteroid newAsteroid)
+bool Asteroid::Split()
 {
+	asteroidSize -= 1;
+	if (asteroidSize <= 0)
+	{
+		return false;
+	}
+	else
+	{
+		float newScale = .3f * asteroidSize;
+		entityTrans->SetScale(newScale, newScale, newScale);
+		radius = .75f * newScale;
+		return true;
+	}
 }
 
 void Asteroid::Update(float deltaTime,XMVECTOR position,float playerRadius)
 {
 	entityTrans->MoveAbsolute(entityVelocity.x * deltaTime, entityVelocity.y * deltaTime, entityVelocity.z * deltaTime);
 	checkCollision(position,playerRadius);
+}
+
+XMFLOAT3 Asteroid::GetVelocity()
+{
+	return entityVelocity;
+}
+
+void Asteroid::SetVelocity(XMFLOAT3 velocity)
+{
+	entityVelocity = velocity;
 }
