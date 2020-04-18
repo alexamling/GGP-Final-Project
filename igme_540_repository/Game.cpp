@@ -48,6 +48,14 @@ Game::~Game()
 	delete MeshOne;
 	delete MeshTwo;
 	delete MeshThree;
+	for (int i = 0; i < asteroids.size(); i++)
+	{
+		delete asteroids[i];
+	}
+	for (int i = 0; i < bullets.size(); i++)
+	{
+		delete bullets[i];
+	}
 	delete MainCamera;
 }
 
@@ -164,7 +172,7 @@ void Game::CreateBasicGeometry()
 	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	XMFLOAT4 white = XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f);
 
-	asteroids.push_back(Asteroid(MeshOne, pixelShader, 10.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions, XMFLOAT3(10,10,10), XMFLOAT3(0.1,0,0)));
+	asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions, XMFLOAT3(10,10,10), XMFLOAT3(0.1,0,0)));
 }
 
 
@@ -188,7 +196,7 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	for (int i = 0; i < asteroids.size(); i++) 
 	{
-		asteroids[i].Update(deltaTime);
+		asteroids[i]->Update(deltaTime);
 	}
 	MainCamera->Update(deltaTime,this->hWnd);
 
@@ -241,9 +249,9 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (int i = 0; i < asteroids.size(); i++)
 	{
-		pixelShader->SetFloat("Specularity", asteroids[i].GetMaterial()->GetSpec());
+		pixelShader->SetFloat("Specularity", asteroids[i]->GetMaterial()->GetSpec());
 		pixelShader->CopyAllBufferData();
-		asteroids[i].Draw(MainCamera);
+		asteroids[i]->Draw(MainCamera);
 	}
 
 	// === SpriteBatch =====================================

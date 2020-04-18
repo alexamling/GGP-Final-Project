@@ -59,8 +59,8 @@ private:
 	Mesh* MeshTwo;
 	Mesh* MeshThree;
 	
-	std::vector<Asteroid> asteroids;
-	std::vector<Bullet> bullets;
+	std::vector<Asteroid*> asteroids;
+	std::vector<Bullet*> bullets;
 
 	Camera* MainCamera;
 
