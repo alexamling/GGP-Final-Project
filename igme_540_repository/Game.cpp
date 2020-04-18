@@ -188,7 +188,9 @@ void Game::OnResize()
 {
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
-	MainCamera->UpdateProjectionMatrix((float)(this->width/this->height));
+	if (MainCamera != nullptr) {
+		MainCamera->UpdateProjectionMatrix((float)this->width / this->height);
+	}
 }
 
 // --------------------------------------------------------

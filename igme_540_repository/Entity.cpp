@@ -40,7 +40,7 @@ void Entity::Draw( Camera* mainCamera)
 	vs->SetFloat4("color", mat->GetColorTint());
 	vs->SetMatrix4x4("world", entityTrans->GetWorldMatrix());
 	vs->SetMatrix4x4("view", mainCamera->GetViewMatrix());
-	vs->SetMatrix4x4("proj", mainCamera->GetProjMatrix());
+	vs->SetMatrix4x4("proj", mainCamera->GetProjectionMatrix());
 
 	vs->CopyAllBufferData();
 
