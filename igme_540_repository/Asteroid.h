@@ -5,11 +5,11 @@ class Asteroid : public Entity
 {
 	public:
 		Asteroid(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad,
-			SimpleVertexShader* vertexShader, XMFLOAT4 tintInput,
+			SimpleVertexShader* vertexShader, XMFLOAT3 tintInput,
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
 			Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt, XMFLOAT3 position, XMFLOAT3 velocity, int size = 3);
 		void Split(Asteroid children);
-		void Update(float deltaTime);
+		void Update(float deltaTime, XMVECTOR position, float playerRadius);
 	private:
 		int asteroidSize;
 		XMFLOAT3 entityVelocity;

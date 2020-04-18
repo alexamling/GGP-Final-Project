@@ -26,7 +26,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Sample the texture to get a color and tint
 	float3 surfaceColor = diffuseTexture.Sample(samplerOptions, input.uv).rgb;
-	// surfaceColor *= input.color.rgb;
+	surfaceColor *= input.color.rgb;
 
 	// Grab the normal map sample and UNPACK THE NORMAL
 	float3 normalFromMap = normalMap.Sample(samplerOptions, input.uv).rgb * 2 - 1;
