@@ -59,6 +59,12 @@ void Transform::MoveAbsolute(float x, float y, float z)
 	dirty = true;
 }
 
+void Transform::MoveAbsolute(XMVECTOR vector)
+{
+	XMStoreFloat3(&position, XMLoadFloat3(&position) + vector);
+	dirty = true;
+}
+
 void Transform::MoveRelative(float x, float y, float z)
 {
 	//Get the orientation axis' of the object
@@ -67,6 +73,12 @@ void Transform::MoveRelative(float x, float y, float z)
 	XMVECTOR dir = XMVector3Rotate(target,targetRot);
 
 	XMStoreFloat3(&position, XMLoadFloat3(&position) + dir);
+	dirty = true;
+}
+
+void Transform::MoveRelative(XMVECTOR vector)
+{
+	XMStoreFloat3(&position, XMLoadFloat3(&position) + XMVector3Rotate(vector, XMLoadFloat4(&pitchYawRoll)));
 	dirty = true;
 }
 
@@ -81,9 +93,21 @@ void Transform::RotateRelative(float pitch, float yaw, float roll)
 	dirty = true;
 }
 
+void Transform::RotateRelative(XMVECTOR pitchYawRoll)
+{
+	XMStoreFloat4(&(this->pitchYawRoll), XMQuaternionMultiply(XMQuaternionRotationRollPitchYawFromVector(pitchYawRoll), XMLoadFloat4(&(this->pitchYawRoll))));
+	dirty = true;
+}
+
 void Transform::RotateAbsolute(float pitch, float yaw, float roll)
 {
 	XMStoreFloat4(&pitchYawRoll, XMQuaternionMultiply(XMLoadFloat4(&pitchYawRoll), XMQuaternionRotationRollPitchYaw(pitch, yaw, roll)));
+	dirty = true;
+}
+
+void Transform::RotateAbsolute(XMVECTOR pitchYawRoll)
+{
+	XMStoreFloat4(&(this->pitchYawRoll), XMQuaternionMultiply(XMLoadFloat4(&(this->pitchYawRoll)), XMQuaternionRotationRollPitchYawFromVector(pitchYawRoll)));
 	dirty = true;
 }
 
@@ -92,6 +116,12 @@ void Transform::Scale(float x, float y, float z)
 	scale.x *= x;
 	scale.y *= x;
 	scale.z *= z;
+	dirty = true;
+}
+
+void Transform::Scale(XMVECTOR scaleVector)
+{
+	XMStoreFloat3(&scale, XMVectorMultiply(XMLoadFloat3(&scale), scaleVector));
 	dirty = true;
 }
 
