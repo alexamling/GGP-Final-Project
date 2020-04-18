@@ -48,9 +48,13 @@ Game::~Game()
 	delete MeshOne;
 	delete MeshTwo;
 	delete MeshThree;
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < asteroids.size(); i++)
 	{
-		delete entityArr[i];
+		delete asteroids[i];
+	}
+	for (int i = 0; i < bullets.size(); i++)
+	{
+		delete bullets[i];
 	}
 	delete MainCamera;
 }
@@ -151,10 +155,10 @@ void Game::CreateBasicGeometry()
 	XMFLOAT3 tempTangent = XMFLOAT3(0.0f, 0.0f, 1.0f);
 	XMFLOAT2 tempUV = XMFLOAT2(0.0f,0.0f);
 
-	MeshOne = new Mesh(device, context, GetFullPathTo("../../Assets/Models/helix.obj").c_str());
+	MeshOne = new Mesh(device, context, GetFullPathTo("../../Assets/Models/sphere.obj").c_str());
 
 	//Smaller Triangle
-	MeshTwo = new Mesh(device,context,GetFullPathTo("../../Assets/Models/sphere.obj").c_str());
+	MeshTwo = new Mesh(device,context,GetFullPathTo("../../Assets/Models/helix.obj").c_str());
 
 	Vertex vertices[] =
 	{
@@ -174,15 +178,19 @@ void Game::CreateBasicGeometry()
 	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	XMFLOAT4 white = XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f);
 
-	entityArr[0] = new Entity(MeshOne, pixelShader, 10.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions);
-	entityArr[0]->GetTransform()->SetScale(0.25f, 0.25f, 0.25f);
-	entityArr[1] = new Entity(MeshOne, pixelShader, 64.0f, vertexShader, red, diffuseTexture, normalMap, samplerOptions);
-	entityArr[1]->GetTransform()->SetScale(0.25f, 0.25f, 0.25f);
-
-	entityArr[2] = new Entity(MeshTwo, pixelShader, 45.0f, vertexShader, green, diffuseTexture, normalMap, samplerOptions);
-	entityArr[3] = new Entity(MeshTwo, pixelShader, 64.0f, vertexShader, blue, diffuseTexture, normalMap, samplerOptions);
-	entityArr[4] = new Entity(MeshThree, pixelShader, 64.0f, vertexShader, black, diffuseTexture, normalMap, samplerOptions);
-
+	XMFLOAT3 pos;
+	XMFLOAT3 vel;
+	srand(time(0));
+	for (int i = 0; i < 256; i++)
+	{
+		pos.x = (rand() % 50) - 25;
+		pos.y = (rand() % 50) - 25;
+		pos.z = (rand() % 50) - 25;
+		vel.x = (rand() % 2) - 1;
+		vel.y = (rand() % 2) - 1;
+		vel.z = (rand() % 2) - 1;
+		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 2.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions, pos, vel));
+	}
 }
 
 
@@ -204,12 +212,10 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-
-	entityArr[0]->GetTransform()->SetPosition(cos(totalTime)*2,0,0);
-	entityArr[0]->GetTransform()->RotateAbsolute(deltaTime, 0, 0);
-	//entityArr[1]->GetTransform()->Rotate(0, deltaTime, 0);
-	entityArr[2]->GetTransform()->SetPosition(cos(totalTime),0,sin(totalTime));
-	entityArr[3]->GetTransform()->SetPosition(-cos(totalTime), sin(totalTime), 0);
+	for (int i = 0; i < asteroids.size(); i++) 
+	{
+		asteroids[i]->Update(deltaTime);
+	}
 	MainCamera->Update(deltaTime,this->hWnd);
 
 	// Quit if the escape key is pressed
@@ -259,11 +265,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	pixelShader->SetShaderResourceView("normalMap", normalMap.Get());
 	pixelShader->SetSamplerState("samplerOptions", samplerOptions.Get());
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < asteroids.size(); i++)
 	{
-		pixelShader->SetFloat("Specularity", entityArr[i]->GetMaterial()->GetSpec());
+		pixelShader->SetFloat("Specularity", asteroids[i]->GetMaterial()->GetSpec());
 		pixelShader->CopyAllBufferData();
-		entityArr[i]->Draw(MainCamera);
+		asteroids[i]->Draw(MainCamera);
 	}
 
 	// === SpriteBatch =====================================
@@ -285,7 +291,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		spriteFont->DrawString(
 			spriteBatch.get(),
 			L"Score: 00",
-			XMFLOAT2(10, 120));
+			XMFLOAT2((float)(this->width)/2, 20));
 
 		// Done with the batch
 		spriteBatch->End();

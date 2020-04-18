@@ -10,7 +10,7 @@
 class Entity
 {
 public:
-	Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec,
+	Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad,
 		SimpleVertexShader* vertexShader,XMFLOAT4 tintInput,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt);
@@ -22,7 +22,9 @@ public:
 
 	void Draw(Camera* mainCamera);
 
-private:
+	bool checkCollision(Entity* other);
+
+protected:
 	Mesh* entityMesh;
 	Transform* entityTrans;
 	Material* mat;

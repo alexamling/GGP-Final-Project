@@ -1,6 +1,6 @@
 #include "Entity.h"
 
-Entity::Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec,
+Entity::Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad,
 	SimpleVertexShader* vertexShader, XMFLOAT4 tintInput,
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt)
@@ -10,6 +10,8 @@ Entity::Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec,
 	entityMesh = mesh;
 	
 	mat = new Material(XMLoadFloat4(&tintInput), spec, pixelShader, vertexShader, diffuseTexture,normalMap,sampOpt);
+
+	radius = rad;
 
 }
 
@@ -36,7 +38,7 @@ Material* Entity::GetMaterial()
 
 void Entity::Draw( Camera* mainCamera)
 {
-	SimpleVertexShader* vs = mat->GetVertexShader(); //   Simplifies next few lines 
+	SimpleVertexShader* vs = Entity::mat->GetVertexShader(); //   Simplifies next few lines 
 	vs->SetFloat4("color", mat->GetColorTint());
 	vs->SetMatrix4x4("world", entityTrans->GetWorldMatrix());
 	vs->SetMatrix4x4("view", mainCamera->GetViewMatrix());
@@ -46,4 +48,22 @@ void Entity::Draw( Camera* mainCamera)
 
 	entityMesh->SetBuffers();
 	entityMesh->DrawMesh();
+}
+
+bool Entity::checkCollision(Entity* other)
+{
+	float bounds = (this->radius + other->radius);
+	XMVECTOR vectorSub = XMVectorSubtract(XMLoadFloat3(&entityTrans->GetPosition()),XMLoadFloat3(&other->entityTrans->GetPosition()));
+	XMVECTOR length = XMVector3Length(vectorSub);
+
+	float distance = 0.0f;
+	XMStoreFloat(&distance, length);
+	
+	if (distance <= bounds)
+	{
+		return false;
+	}
+	else {
+		return true;
+	}
 }
