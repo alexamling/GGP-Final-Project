@@ -379,7 +379,7 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
 		XMFLOAT3 vel = XMFLOAT3(0, 0, 1.0f);
 		XMStoreFloat3(&vel, XMVector3Rotate(XMLoadFloat3(&vel), XMLoadFloat4(&(MainCamera->GetTransform()->GetPitchYawRoll()))));
-		bullets.push_back(new Bullet(MeshOne, pixelShader, 10.0f, 0.1f, vertexShader, XMFLOAT4(1, 1, 1, 1), diffuseTexture, normalMap, samplerOptions, MainCamera->GetTransform()->GetPosition(), vel));
+		bullets.push_back(new Bullet(MeshOne, pixelShader, 10.0f, 0.1f, vertexShader, XMFLOAT4(1, 1, 1, 1) , diffuseTexture, normalMap, samplerOptions, MainCamera->GetTransform()->GetPosition(), vel));
 	}
 
 	for (int i = 0; i < bullets.size(); i++) {
