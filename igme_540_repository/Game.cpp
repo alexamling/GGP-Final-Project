@@ -88,13 +88,12 @@ void Game::Init()
 	MainCamera = new Camera(XMFLOAT3(0, 0, -2), XMFLOAT3(0, 0, 0), 70, this->width, this->height, .01f, 100.f, 5, 2, .5f, hWnd);
 
 	dirLight.DiffuseColor = XMFLOAT3(0.8f, 0.8f, 0.8f);
-	dirLight.Direction = XMFLOAT3(0, 3, 0);
+	dirLight.Direction = XMFLOAT3(1,-1, 0);
 	dirLight.Intensity = 1.0f;
 
 	pntLight.Color = XMFLOAT3(0.7f, 0.7f, 0.7f);
-	pntLight.Position = XMFLOAT3(0, 10, 5);
 	pntLight.Intensity = 1.0f;
-	pntLight.Range = 2.0f;
+	pntLight.Range = 10.0f;
 
 	// Texture releated init
 	CreateWICTextureFromFile(
@@ -172,11 +171,11 @@ void Game::CreateBasicGeometry()
 	//This one is a square
 	MeshThree = new Mesh(vertices, 4, indices2, 6, device, context);
 
-	XMFLOAT4 red = XMFLOAT4(0.7f, 0.0f, 0.0f, 0.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 0.7f, 0.0f, 0.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.1f, 0.1f, 0.7f, 0.0f);
-	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-	XMFLOAT4 white = XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f);
+	XMFLOAT3 red = XMFLOAT3(0.7f, 0.0f, 0.0f);
+	XMFLOAT3 green = XMFLOAT3(0.0f, 0.7f, 0.0f);
+	XMFLOAT3 blue = XMFLOAT3(0.1f, 0.1f, 0.7f);
+	XMFLOAT3 black = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3 white = XMFLOAT3(0.7f, 0.7f, 0.7f);
 
 	XMFLOAT3 pos;
 	XMFLOAT3 vel;
@@ -189,7 +188,7 @@ void Game::CreateBasicGeometry()
 		vel.x = (rand() % 2) - 1;
 		vel.y = (rand() % 2) - 1;
 		vel.z = (rand() % 2) - 1;
-		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 2.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions, pos, vel));
+		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 0.75f, vertexShader, white, diffuseTexture, normalMap, samplerOptions, pos, vel));
 	}
 }
 
@@ -214,9 +213,10 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	for (int i = 0; i < asteroids.size(); i++) 
 	{
-		asteroids[i]->Update(deltaTime);
+		asteroids[i]->Update(deltaTime,XMLoadFloat3(&MainCamera->GetTransform()->GetPosition()),0.75f);
 	}
 	MainCamera->Update(deltaTime,this->hWnd);
+	pntLight.Position = MainCamera->GetTransform()->GetPosition();
 
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))

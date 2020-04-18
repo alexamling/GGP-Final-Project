@@ -23,8 +23,8 @@ struct DirectionalLight {
 };
 
 struct PointLight {
-	float3 Color;
 	float3 Position;
+	float3 Color;
 	float Intensity;
 	float Range;
 };

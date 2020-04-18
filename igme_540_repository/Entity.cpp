@@ -1,7 +1,7 @@
 #include "Entity.h"
 
 Entity::Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad,
-	SimpleVertexShader* vertexShader, XMFLOAT4 tintInput,
+	SimpleVertexShader* vertexShader, XMFLOAT3 tintInput,
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt)
 {
@@ -9,10 +9,10 @@ Entity::Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad
 	
 	entityMesh = mesh;
 	
-	mat = new Material(XMLoadFloat4(&tintInput), spec, pixelShader, vertexShader, diffuseTexture,normalMap,sampOpt);
+	mat = new Material(XMLoadFloat3(&tintInput), spec, pixelShader, vertexShader, diffuseTexture,normalMap,sampOpt);
 
 	radius = rad;
-
+	colliding = false;
 }
 
 Entity::~Entity()
@@ -39,7 +39,7 @@ Material* Entity::GetMaterial()
 void Entity::Draw( Camera* mainCamera)
 {
 	SimpleVertexShader* vs = Entity::mat->GetVertexShader(); //   Simplifies next few lines 
-	vs->SetFloat4("color", mat->GetColorTint());
+	vs->SetFloat3("color", mat->GetColorTint());
 	vs->SetMatrix4x4("world", entityTrans->GetWorldMatrix());
 	vs->SetMatrix4x4("view", mainCamera->GetViewMatrix());
 	vs->SetMatrix4x4("proj", mainCamera->GetProjectionMatrix());
@@ -50,20 +50,24 @@ void Entity::Draw( Camera* mainCamera)
 	entityMesh->DrawMesh();
 }
 
-bool Entity::checkCollision(Entity* other)
+void Entity::checkCollision(XMVECTOR position, float playerRadius)
 {
-	float bounds = (this->radius + other->radius);
-	XMVECTOR vectorSub = XMVectorSubtract(XMLoadFloat3(&entityTrans->GetPosition()),XMLoadFloat3(&other->entityTrans->GetPosition()));
+	float bounds = (this->radius + playerRadius);
+	XMVECTOR vectorSub = XMVectorSubtract(XMLoadFloat3(&entityTrans->GetPosition()), position);
 	XMVECTOR length = XMVector3Length(vectorSub);
 
 	float distance = 0.0f;
 	XMStoreFloat(&distance, length);
 	
-	if (distance <= bounds)
+	if (distance > bounds)
 	{
-		return false;
+		XMFLOAT3 newTint = XMFLOAT3(0, 1, 0);
+		mat->SetColorTint(XMLoadFloat3(&newTint));
+		colliding = false;
 	}
 	else {
-		return true;
+		XMFLOAT3 newTint = XMFLOAT3(1,0,0);
+		mat->SetColorTint(XMLoadFloat3(&newTint));
+		colliding = true;
 	}
 }

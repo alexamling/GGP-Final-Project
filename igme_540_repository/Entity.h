@@ -11,7 +11,7 @@ class Entity
 {
 public:
 	Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad,
-		SimpleVertexShader* vertexShader,XMFLOAT4 tintInput,
+		SimpleVertexShader* vertexShader,XMFLOAT3 tintInput,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt);
 	~Entity();
@@ -21,13 +21,13 @@ public:
 	Material* GetMaterial();
 
 	void Draw(Camera* mainCamera);
-
-	bool checkCollision(Entity* other);
+	void checkCollision(XMVECTOR position, float playerRadius);
 
 protected:
 	Mesh* entityMesh;
 	Transform* entityTrans;
 	Material* mat;
 	float radius;
+	bool colliding;
 };
 
