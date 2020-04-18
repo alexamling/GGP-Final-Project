@@ -164,7 +164,7 @@ void Game::CreateBasicGeometry()
 	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	XMFLOAT4 white = XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f);
 
-	asteroids.push_back(Asteroid(MeshOne, pixelShader, 10.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions, XMFLOAT3(10,10,10), XMFLOAT3(0.1,0,0)));
+	asteroids.push_back(Asteroid(MeshOne, pixelShader, 10.0f, 2.0f,vertexShader, white, diffuseTexture, normalMap, samplerOptions, XMFLOAT3(10,10,10), XMFLOAT3(0.1,0,0)));
 }
 
 
