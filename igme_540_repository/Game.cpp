@@ -149,10 +149,10 @@ void Game::CreateBasicGeometry()
 	XMFLOAT3 tempTangent = XMFLOAT3(0.0f, 0.0f, 1.0f);
 	XMFLOAT2 tempUV = XMFLOAT2(0.0f,0.0f);
 
-	MeshOne = new Mesh(device, context, GetFullPathTo("../../Assets/Models/helix.obj").c_str());
+	MeshOne = new Mesh(device, context, GetFullPathTo("../../Assets/Models/sphere.obj").c_str());
 
 	//Smaller Triangle
-	MeshTwo = new Mesh(device,context,GetFullPathTo("../../Assets/Models/sphere.obj").c_str());
+	MeshTwo = new Mesh(device,context,GetFullPathTo("../../Assets/Models/helix.obj").c_str());
 
 	Vertex vertices[] =
 	{
@@ -172,8 +172,19 @@ void Game::CreateBasicGeometry()
 	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	XMFLOAT4 white = XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f);
 
-
-	asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f,2.0f vertexShader, white, diffuseTexture, normalMap, samplerOptions, XMFLOAT3(10,10,10), XMFLOAT3(0.1,0,0)));
+	XMFLOAT3 pos;
+	XMFLOAT3 vel;
+	srand(time(0));
+	for (int i = 0; i < 256; i++)
+	{
+		pos.x = (rand() % 50) - 25;
+		pos.y = (rand() % 50) - 25;
+		pos.z = (rand() % 50) - 25;
+		vel.x = (rand() % 2) - 1;
+		vel.y = (rand() % 2) - 1;
+		vel.z = (rand() % 2) - 1;
+		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 2.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions, pos, vel));
+	}
 }
 
 
