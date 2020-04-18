@@ -22,10 +22,11 @@ public:
 
 	void Draw(Camera* mainCamera);
 
-private:
+protected:
 	Mesh* entityMesh;
 	Transform* entityTrans;
 	Material* mat;
 	float radius;
+
 };
 
