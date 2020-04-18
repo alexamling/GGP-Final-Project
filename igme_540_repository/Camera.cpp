@@ -1,143 +1,151 @@
 #include "Camera.h"
 
-Camera::Camera(XMVECTOR position, XMVECTOR orientation, float aspectRatio, 
-	float field, float nClip, float fClip, float move, float look)
+using namespace DirectX;
+
+Camera::Camera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rot, float fov, float aspectRatio, float nearClip, float farClip, float moveSpeed, float rotateSpeed, float mouseRotateSpeed)
 {
-	//Camera transform
-	trans = new Transform();
-	
-	//Position
-	XMFLOAT3 pos;
-	XMStoreFloat3(&pos,position);
-	trans->SetPosition(pos.x, pos.y, pos.z);
+	transform = Transform();
+	transform.SetPosition(pos.x, pos.y, pos.z);
+	transform.SetRotation(rot.x, rot.y, rot.z);
 
-	//Rotation
-	XMFLOAT3 ori;
-	XMStoreFloat3(&ori, orientation);
-	trans->SetRotation(ori.x,ori.y,ori.z);
+	this->fov = fov;
+	this->nearClip = nearClip;
+	this->farClip = farClip;
+	this->moveSpeed = moveSpeed;
+	this->rotateSpeed = rotateSpeed;
+	this->mouseRotateSpeed = mouseRotateSpeed;
 
-	//Camera render specifications
-	FoV = field;
-	nearClip = nClip;
-	farClip = fClip;
-	
-	//Camera speeds
-	moveSpeed = move;
-	lookSpeed = look;
-	
-	//Mouse Positions
-	prevMousePos.x = 0;
-	prevMousePos.y = 0;
-
-	//Matrix updates
+	viewMatrix = XMFLOAT4X4();
+	dirtyView = true;
+	viewInv = XMFLOAT4X4();
+	dirtyViewInv = true;
+	projectionMatrix = XMFLOAT4X4();
 	UpdateProjectionMatrix(aspectRatio);
-	UpdateViewMatrix();
-
-}
-
-Camera::~Camera()
-{
-	delete trans;
-}
-
-XMFLOAT4X4 Camera::GetViewMatrix()
-{
-	return view;
-}
-
-XMFLOAT4X4 Camera::GetProjMatrix()
-{
-	return proj;
 }
 
 Transform* Camera::GetTransform()
 {
-	return trans;
+	return &transform;
 }
 
-void Camera::UpdateProjectionMatrix(float aspectRatio)
+DirectX::XMFLOAT4X4 Camera::GetViewMatrix()
 {
-	XMStoreFloat4x4(&proj, XMMatrixPerspectiveFovLH(FoV,aspectRatio,nearClip,farClip));
+	if (dirtyView) {
+		UpdateViewMatrix();
+	}
+	return viewMatrix;
+}
+
+DirectX::XMFLOAT4X4 Camera::GetProjectionMatrix()
+{
+	return projectionMatrix;
+}
+
+DirectX::XMFLOAT4X4 Camera::GetViewInverse()
+{
+	// force update view
+	GetViewMatrix();
+
+	// check if inverse needs update
+	if (dirtyViewInv) {
+		XMStoreFloat4x4(
+			&viewInv,
+			XMMatrixInverse(nullptr, XMLoadFloat4x4(&viewMatrix))
+		);
+		dirtyViewInv = false;
+	}
+
+	return viewInv;
 }
 
 void Camera::UpdateViewMatrix()
 {
-	XMFLOAT4 rotation = trans->GetPitchYawRoll();
-	XMVECTOR Rot = XMLoadFloat4(&rotation);
-	
-	XMVECTOR worldForward = XMVectorSet(0, 0, 1, 0);
-	XMVECTOR newForward = XMVector3Rotate(worldForward, Rot);\
-
+	// set vectors
+	XMVECTOR forward = XMVectorSet(0, 0, 1, 0);
 	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-	up = XMVector3Rotate(up, Rot);
+	XMFLOAT3 pos = transform.GetPosition();
 
-	XMStoreFloat4x4(&view,XMMatrixLookToLH(XMLoadFloat3(&trans->GetPosition()),
-		newForward, up));
+	XMFLOAT4 rot = transform.GetPitchYawRoll();
+	XMVECTOR rotV = XMLoadFloat4(&rot);
+
+	// find up and forward
+	forward = XMVector3Rotate(forward, rotV);
+	up = XMVector3Rotate(up, rotV);
+
+	// create matrix
+	XMStoreFloat4x4(&viewMatrix, XMMatrixLookToLH(XMLoadFloat3(&pos), forward, up));
+	dirtyView = false;
+	dirtyViewInv = true;
+}
+
+void Camera::UpdateProjectionMatrix(float aspectRatio)
+{
+	XMStoreFloat4x4(&projectionMatrix, XMMatrixPerspectiveFovLH(fov, aspectRatio, nearClip, farClip));
 }
 
 void Camera::Update(float dt, HWND windowHandle)
 {
-	float speedScale = dt;
+	float zoomRectifier = 1.f;
 
-#pragma region Speed Scaling
 	if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
-		/*Speed up Movement Speed*/ 
-		speedScale *= 1.8f;
+		zoomRectifier *= 5;
 	}
-	if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
-		/*Slow down Movement Speed*/ 
-		speedScale *= 0.6f;
+	if (GetAsyncKeyState(VK_CONTROL) &  0x8000) {
+		zoomRectifier *= .2f;
 	}
-#pragma endregion
 
-#pragma region RelativeMovement
+	zoomRectifier *= moveSpeed * dt;
+
+	// keyboard movement
 	if (GetAsyncKeyState('W') & 0x8000) {
-		/*Relative forward*/
-		trans->MoveRelative(0, 0, moveSpeed * speedScale);
+		transform.MoveRelative(0, 0, zoomRectifier);
+		dirtyView = true;
 	}
 	if (GetAsyncKeyState('S') & 0x8000) {
-		/*Relative Backward*/ 
-		trans->MoveRelative(0, 0, moveSpeed * speedScale * -1);
+		transform.MoveRelative(0, 0, -zoomRectifier);
+		dirtyView = true;
 	}
 	if (GetAsyncKeyState('A') & 0x8000) {
-		/*Relative Left*/
-		trans->MoveRelative(moveSpeed * speedScale * -1, 0, 0);
+		transform.MoveRelative(-zoomRectifier, 0, 0);
+		dirtyView = true;
 	}
 	if (GetAsyncKeyState('D') & 0x8000) {
-		/*Relative Right*/
-		trans->MoveRelative(moveSpeed * speedScale, 0, 0);
+		transform.MoveRelative(zoomRectifier, 0, 0);
+		dirtyView = true;
 	}
-#pragma endregion
+	if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
+		transform.MoveRelative(0, zoomRectifier, 0);
+		dirtyView = true;
+	}
+	if (GetAsyncKeyState('C') & 0x8000) {
+		transform.MoveRelative(0, -zoomRectifier, 0);
+		dirtyView = true;
+	}
 
-#pragma region AbsoluteMovement
-	if (GetAsyncKeyState('E') & 0x8000) {
-		/*Absolute Up*/
-		trans->MoveAbsolute(0, moveSpeed * speedScale, 0);
-	}
+	// keyboard rotation
 	if (GetAsyncKeyState('Q') & 0x8000) {
-		/*Absolute Down*/
-		trans->MoveAbsolute(0, moveSpeed * speedScale * -1, 0);
+		transform.RotateRelative(0, 0, dt * rotateSpeed);
+		dirtyView = true;
 	}
-#pragma endregion
+	if (GetAsyncKeyState('E') & 0x8000) {
+		transform.RotateRelative(0, 0, -dt * rotateSpeed);
+		dirtyView = true;
+	}
 
-#pragma region MouseRotation
-	//Get mouse position
-	POINT mousePos = {}; 
-	GetCursorPos(&mousePos); 
+	// mouse rotation
+	POINT mousePos = {};
+	GetCursorPos(&mousePos);
 	ScreenToClient(windowHandle, &mousePos);
 
-	float deltaY = (mousePos.x - prevMousePos.x) * dt * lookSpeed;
-	float deltaX = (mousePos.y - prevMousePos.y) * dt * lookSpeed;
-
 	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-		/*Aim camera*/ 
-		trans->RotateRelative(deltaX,deltaY,0);
+		POINT diff = {};
+		diff.x = mousePos.x - prevMousePos.x;
+		diff.y = mousePos.y - prevMousePos.y;
+
+		transform.RotateRelative(dt * diff.y * mouseRotateSpeed, dt * diff.x * mouseRotateSpeed, 0);
+		dirtyView = true;
 	}
+	prevMousePos = mousePos;
 
-	prevMousePos.x = mousePos.x;
-	prevMousePos.y = mousePos.y;
-#pragma endregion
-
-	UpdateViewMatrix();
-
+	// viewMatrix is updated when dirty
 }
