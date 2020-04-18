@@ -5,6 +5,9 @@ Asteroid::Asteroid(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float
 {
 	asteroidSize = size;
 	entityTrans->SetPosition(position.x, position.y, position.z);
+	float newScale = .3f * asteroidSize;
+	entityTrans->SetScale(newScale, newScale, newScale);
+	radius = .75f * newScale;
 	entityVelocity = velocity;
 }
 
@@ -17,7 +20,9 @@ bool Asteroid::Split()
 	}
 	else
 	{
-		entityTrans->SetScale(1, 1, 1);
+		float newScale = .3f * asteroidSize;
+		entityTrans->SetScale(newScale, newScale, newScale);
+		radius = .75f * newScale;
 		return true;
 	}
 }

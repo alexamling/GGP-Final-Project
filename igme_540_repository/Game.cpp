@@ -224,7 +224,7 @@ bool Game::SplitAsteroid(int index)
 		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 0.75f, 
 			vertexShader, XMFLOAT4(0.7f, 0.7f, 0.7f,0),
 			diffuseTexture, normalMap, 
-			samplerOptions, asteroids[index]->GetTransform()->GetPosition(), vel));
+			samplerOptions, asteroids[index]->GetTransform()->GetPosition(), vel, asteroids[index]->asteroidSize));
 		// change asteroid velocity
 		vel.x *= -1;
 		vel.y *= -1;
