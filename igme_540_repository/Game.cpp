@@ -194,7 +194,7 @@ void Game::Update(float deltaTime, float totalTime)
 {
 
 	entityArr[0]->GetTransform()->SetPosition(cos(totalTime)*2,0,0);
-	entityArr[0]->GetTransform()->Rotate(deltaTime, 0, 0);
+	entityArr[0]->GetTransform()->RotateAbsolute(deltaTime, 0, 0);
 	//entityArr[1]->GetTransform()->Rotate(0, deltaTime, 0);
 	entityArr[2]->GetTransform()->SetPosition(cos(totalTime),0,sin(totalTime));
 	entityArr[3]->GetTransform()->SetPosition(-cos(totalTime), sin(totalTime), 0);
