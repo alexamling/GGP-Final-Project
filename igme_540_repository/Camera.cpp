@@ -3,24 +3,33 @@
 Camera::Camera(XMVECTOR position, XMVECTOR orientation, float aspectRatio, 
 	float field, float nClip, float fClip, float move, float look)
 {
+	//Camera transform
 	trans = new Transform();
+	
+	//Position
 	XMFLOAT3 pos;
 	XMStoreFloat3(&pos,position);
 	trans->SetPosition(pos.x, pos.y, pos.z);
 
+	//Rotation
 	XMFLOAT3 ori;
 	XMStoreFloat3(&ori, orientation);
 	trans->SetRotation(ori.x,ori.y,ori.z);
 
+	//Camera render specifications
 	FoV = field;
 	nearClip = nClip;
 	farClip = fClip;
+	
+	//Camera speeds
 	moveSpeed = move;
 	lookSpeed = look;
 	
+	//Mouse Positions
 	prevMousePos.x = 0;
 	prevMousePos.y = 0;
 
+	//Matrix updates
 	UpdateProjectionMatrix(aspectRatio);
 	UpdateViewMatrix();
 
@@ -53,14 +62,17 @@ void Camera::UpdateProjectionMatrix(float aspectRatio)
 
 void Camera::UpdateViewMatrix()
 {
-	XMFLOAT3 rotation = trans->GetPitchYawRoll();
-	XMVECTOR Rot = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
+	XMFLOAT4 rotation = trans->GetPitchYawRoll();
+	XMVECTOR Rot = XMLoadFloat4(&rotation);
 	
 	XMVECTOR worldForward = XMVectorSet(0, 0, 1, 0);
-	XMVECTOR newForward = XMVector3Rotate(worldForward, Rot);
+	XMVECTOR newForward = XMVector3Rotate(worldForward, Rot);\
+
+	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
+	up = XMVector3Rotate(up, Rot);
 
 	XMStoreFloat4x4(&view,XMMatrixLookToLH(XMLoadFloat3(&trans->GetPosition()),
-		newForward, XMVectorSet(0, 1, 0, 0)));
+		newForward, up));
 }
 
 void Camera::Update(float dt, HWND windowHandle)
@@ -119,7 +131,7 @@ void Camera::Update(float dt, HWND windowHandle)
 
 	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
 		/*Aim camera*/ 
-		trans->Rotate(deltaX,deltaY,0);
+		trans->RotateRelative(deltaX,deltaY,0);
 	}
 
 	prevMousePos.x = mousePos.x;
