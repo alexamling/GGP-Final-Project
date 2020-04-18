@@ -23,10 +23,15 @@ public:
 
 	//Movement functions
 	void MoveAbsolute(float x, float y, float z);
+	void MoveAbsolute(XMVECTOR vector);
 	void MoveRelative(float x, float y, float z);
+	void MoveRelative(XMVECTOR vector);
 	void RotateRelative(float pitch, float yaw, float roll);
+	void RotateRelative(XMVECTOR pitchYawRoll);
 	void RotateAbsolute(float pitch, float yaw, float roll);
+	void RotateAbsolute(XMVECTOR pitchYawRoll);
 	void Scale(float x, float y, float z);
+	void Scale(XMVECTOR scaleVector);
 
 private:
 	//Raw variable data
