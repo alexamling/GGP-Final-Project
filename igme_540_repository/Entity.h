@@ -21,13 +21,13 @@ public:
 	Material* GetMaterial();
 
 	void Draw(Camera* mainCamera);
-
-	bool checkCollision(XMVECTOR position, float playerRadius);
+	void checkCollision(XMVECTOR position, float playerRadius);
 
 protected:
 	Mesh* entityMesh;
 	Transform* entityTrans;
 	Material* mat;
 	float radius;
+	bool colliding;
 };
 

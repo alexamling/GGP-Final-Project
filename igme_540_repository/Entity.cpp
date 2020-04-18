@@ -12,7 +12,7 @@ Entity::Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad
 	mat = new Material(XMLoadFloat3(&tintInput), spec, pixelShader, vertexShader, diffuseTexture,normalMap,sampOpt);
 
 	radius = rad;
-
+	colliding = false;
 }
 
 Entity::~Entity()
@@ -50,7 +50,7 @@ void Entity::Draw( Camera* mainCamera)
 	entityMesh->DrawMesh();
 }
 
-bool Entity::checkCollision(XMVECTOR position, float playerRadius)
+void Entity::checkCollision(XMVECTOR position, float playerRadius)
 {
 	float bounds = (this->radius + playerRadius);
 	XMVECTOR vectorSub = XMVectorSubtract(XMLoadFloat3(&entityTrans->GetPosition()), position);
@@ -63,11 +63,11 @@ bool Entity::checkCollision(XMVECTOR position, float playerRadius)
 	{
 		XMFLOAT3 newTint = XMFLOAT3(0, 1, 0);
 		mat->SetColorTint(XMLoadFloat3(&newTint));
-		return false;
+		colliding = false;
 	}
 	else {
 		XMFLOAT3 newTint = XMFLOAT3(1,0,0);
 		mat->SetColorTint(XMLoadFloat3(&newTint));
-		return true;
+		colliding = true;
 	}
 }
