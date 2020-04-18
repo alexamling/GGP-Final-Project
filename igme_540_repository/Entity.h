@@ -24,7 +24,7 @@ public:
 
 	bool checkCollision(Entity* other);
 
-private:
+protected:
 	Mesh* entityMesh;
 	Transform* entityTrans;
 	Material* mat;

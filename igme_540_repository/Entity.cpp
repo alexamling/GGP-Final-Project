@@ -38,7 +38,7 @@ Material* Entity::GetMaterial()
 
 void Entity::Draw( Camera* mainCamera)
 {
-	SimpleVertexShader* vs = mat->GetVertexShader(); //   Simplifies next few lines 
+	SimpleVertexShader* vs = Entity::mat->GetVertexShader(); //   Simplifies next few lines 
 	vs->SetFloat4("color", mat->GetColorTint());
 	vs->SetMatrix4x4("world", entityTrans->GetWorldMatrix());
 	vs->SetMatrix4x4("view", mainCamera->GetViewMatrix());

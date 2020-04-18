@@ -45,10 +45,10 @@
     <ClCompile Include="SimpleShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bullet.cpp">
+    <ClCompile Include="Asteroid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Asteroid.cpp">
+    <ClCompile Include="Bullet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -102,9 +102,9 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="ShaderIncludes.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="packages.config" />
   </ItemGroup>
 </Project>
