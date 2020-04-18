@@ -168,14 +168,14 @@ void Game::CreateBasicGeometry()
 	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 	XMFLOAT4 white = XMFLOAT4(0.7f, 0.7f, 0.7f, 0.0f);
 
-	entityArr[0] = new Entity(MeshOne, pixelShader, 10.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions);
+	entityArr[0] = new Entity(MeshOne, pixelShader, 10.0f,2.0f, vertexShader, white, diffuseTexture, normalMap, samplerOptions);
 	entityArr[0]->GetTransform()->SetScale(0.25f, 0.25f, 0.25f);
-	entityArr[1] = new Entity(MeshOne, pixelShader, 64.0f, vertexShader, red, diffuseTexture, normalMap, samplerOptions);
+	entityArr[1] = new Entity(MeshOne, pixelShader, 64.0f, 2.0f, vertexShader, red, diffuseTexture, normalMap, samplerOptions);
 	entityArr[1]->GetTransform()->SetScale(0.25f, 0.25f, 0.25f);
 
-	entityArr[2] = new Entity(MeshTwo, pixelShader, 45.0f, vertexShader, green, diffuseTexture, normalMap, samplerOptions);
-	entityArr[3] = new Entity(MeshTwo, pixelShader, 64.0f, vertexShader, blue, diffuseTexture, normalMap, samplerOptions);
-	entityArr[4] = new Entity(MeshThree, pixelShader, 64.0f, vertexShader, black, diffuseTexture, normalMap, samplerOptions);
+	entityArr[2] = new Entity(MeshTwo, pixelShader, 45.0f, 2.0f, vertexShader, green, diffuseTexture, normalMap, samplerOptions);
+	entityArr[3] = new Entity(MeshTwo, pixelShader, 64.0f, 2.0f, vertexShader, blue, diffuseTexture, normalMap, samplerOptions);
+	entityArr[4] = new Entity(MeshThree, pixelShader, 64.0f, 2.0f, vertexShader, black, diffuseTexture, normalMap, samplerOptions);
 
 }
 
