@@ -1,5 +1,22 @@
 #pragma once
-class Bullet
+#include "Entity.h"
+#include <DirectXMath.h>
+#include "DXCore.h"
+
+class Bullet : public Entity
 {
+private:
+	DirectX::XMFLOAT3 velocity;
+
+public:
+	Bullet(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad,
+		SimpleVertexShader* vertexShader, XMFLOAT4 tintInput,
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt, XMFLOAT3 position, XMFLOAT3 velocity);
+
+	~Bullet();
+
+	// methods
+	void Update(float dt);
 };
 
