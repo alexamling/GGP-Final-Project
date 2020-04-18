@@ -18,7 +18,7 @@ public:
 	SimpleVertexShader* GetVertexShader();
 
 	void SetColorTint(XMVECTOR tint);
-	XMFLOAT3 GetColorTint();
+	XMFLOAT4 GetColorTint();
 
 	void SetSpec(float spec);
 	float GetSpec();
@@ -28,7 +28,7 @@ public:
 
 
 private:
-	XMFLOAT3 colorTint;
+	XMFLOAT4 colorTint;
 	float specular;
 
 	// Shaders and shader-related constructs

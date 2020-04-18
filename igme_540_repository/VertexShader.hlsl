@@ -1,7 +1,7 @@
 #include "ShaderIncludes.hlsli"
 
 cbuffer ExternalData : register(b0) {
-	float3 color;
+	float4 color;
 	matrix world;
 	matrix view;
 	matrix proj;
@@ -55,7 +55,7 @@ VertexToPixel main( VertexShaderInput input )
 	output.tangent = normalize(output.tangent);
 
 	// Tints the color before passing it through
-	output.color = float4(color,1);
+	output.color = color;
 
 	output.uv = input.uv;
 

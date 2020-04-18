@@ -4,7 +4,7 @@ Material::Material(XMVECTOR tint, float spec, SimplePixelShader* pixShd, SimpleV
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffText, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> nMap,
     Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt)
 {
-    XMStoreFloat3(&colorTint, tint);
+    XMStoreFloat4(&colorTint, tint);
 
     specular = spec;
 
@@ -28,10 +28,10 @@ SimpleVertexShader* Material::GetVertexShader()
 
 void Material::SetColorTint(XMVECTOR tint)
 {
-    XMStoreFloat3(&colorTint, tint);
+    XMStoreFloat4(&colorTint, tint);
 }
 
-XMFLOAT3 Material::GetColorTint()
+XMFLOAT4 Material::GetColorTint()
 {
     return colorTint;
 }
