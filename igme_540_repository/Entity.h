@@ -27,6 +27,5 @@ protected:
 	Transform* entityTrans;
 	Material* mat;
 	float radius;
-
 };
 

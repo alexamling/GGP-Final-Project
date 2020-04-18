@@ -8,6 +8,8 @@
 #include "Mesh.h"
 #include "Entity.h"
 #include "Camera.h"
+#include "Asteroid.h"
+#include "Bullet.h"
 
 #include "Vertex.h"
 #include "DirectionalLight.h"
@@ -57,7 +59,8 @@ private:
 	Mesh* MeshTwo;
 	Mesh* MeshThree;
 	
-	Entity* entityArr[5];
+	std::vector<Asteroid> asteroids;
+	std::vector<Bullet> bullets;
 
 	Camera* MainCamera;
 
