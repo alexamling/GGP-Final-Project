@@ -112,6 +112,10 @@ void Game::Init()
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	device->CreateSamplerState(&sampDesc, samplerOptions.GetAddressOf());
 
+	// Sprite batch setup (and sprite font loading)
+	spriteBatch = std::make_unique<SpriteBatch>(context.Get());
+	spriteFont = std::make_unique<SpriteFont>(device.Get(), GetFullPathTo_Wide(L"../../Assets/Fonts/Arial.spritefont").c_str());
+
 }
 
 // --------------------------------------------------------
@@ -254,6 +258,40 @@ void Game::Draw(float deltaTime, float totalTime)
 		entityArr[i]->Draw(MainCamera);
 	}
 
+	// === SpriteBatch =====================================
+	// See these links for more info!
+	// SpriteBatch: https://github.com/microsoft/DirectXTK/wiki/SpriteBatch
+	// SpriteFont: https://github.com/microsoft/DirectXTK/wiki/SpriteFont
+	{
+
+		// Grab the SRV of the font from the SpriteFont
+		// Note: It's not great to do this every frame, but 
+		// this is just a demo to show what it looks like!
+		ID3D11ShaderResourceView* fontSheet;
+		spriteFont->GetSpriteSheet(&fontSheet);
+
+		// Begin the batch
+		spriteBatch->Begin();
+
+		// Draw the text score
+		spriteFont->DrawString(
+			spriteBatch.get(),
+			L"Score: 00",
+			XMFLOAT2(10, 120));
+
+		// Done with the batch
+		spriteBatch->End();
+
+		// Release the extra reference to the font sheet we made above
+		// when we called GetSpriteSheet()
+		fontSheet->Release();
+
+		// Reset any states that may be changed by sprite batch!
+		context->OMSetBlendState(0, 0, 0xFFFFFFFF);
+		context->RSSetState(0);
+		context->OMSetDepthStencilState(0, 0);
+	}
+	// ======================================================
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it

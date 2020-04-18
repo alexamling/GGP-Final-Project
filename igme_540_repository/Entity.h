@@ -26,5 +26,6 @@ private:
 	Mesh* entityMesh;
 	Transform* entityTrans;
 	Material* mat;
+	float radius;
 };
 
