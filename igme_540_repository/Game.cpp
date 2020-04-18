@@ -188,17 +188,33 @@ void Game::CreateBasicGeometry()
 		vel.x = (rand() % 2) - 1;
 		vel.y = (rand() % 2) - 1;
 		vel.z = (rand() % 2) - 1;
-		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 0.75f, vertexShader, white, diffuseTexture, normalMap, samplerOptions, pos, vel));
+		asteroids.push_back(new Asteroid(
+			MeshOne, pixelShader, 10.0f, 0.75f, 
+			vertexShader, white, 
+			diffuseTexture, normalMap, 
+			samplerOptions, pos, vel));
 	}
 }
 
-void Game::SplitAsteroid(int index)
+bool Game::SplitAsteroid(int index)
 {
 	bool split = asteroids[index]->Split();
 	if (split)
 	{
+		XMFLOAT3 vel;
+		vel.x = (rand() % 2) - 1;
+		vel.y = (rand() % 2) - 1;
+		vel.z = (rand() % 2) - 1;
 		// create new asteroid from old asteroid
+		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 0.75f, 
+			vertexShader, XMFLOAT3(0.7f, 0.7f, 0.7f),
+			diffuseTexture, normalMap, 
+			samplerOptions, asteroids[index]->GetTransform()->GetPosition(), vel));
 		// change asteroid velocity
+		vel.x *= -1;
+		vel.y *= -1;
+		vel.z *= -1;
+		asteroids[index]->SetVelocity(vel);
 	}
 	else
 	{

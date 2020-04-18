@@ -9,7 +9,7 @@ class Asteroid : public Entity
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
 			Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt, XMFLOAT3 position, XMFLOAT3 velocity, int size = 3);
 		bool Split();
-		void Update(float deltaTime);
+		void Update(float deltaTime, XMVECTOR position, float playerRadius);
 		XMFLOAT3 GetVelocity();
 		void SetVelocity(XMFLOAT3 velocity);
 	private:
