@@ -377,9 +377,11 @@ void Game::Update(float deltaTime, float totalTime)
 	pntLight.Position = MainCamera->GetTransform()->GetPosition();
 
 	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-		XMFLOAT3 vel = XMFLOAT3(0, 0, 1.0f);
+		XMFLOAT3 vel = XMFLOAT3(0, 0, 10.f);
 		XMStoreFloat3(&vel, XMVector3Rotate(XMLoadFloat3(&vel), XMLoadFloat4(&(MainCamera->GetTransform()->GetPitchYawRoll()))));
-		bullets.push_back(new Bullet(MeshOne, pixelShader, 10.0f, 0.1f, vertexShader, XMFLOAT4(1, 1, 1, 1), diffuseTexture, normalMap, samplerOptions, MainCamera->GetTransform()->GetPosition(), vel));
+		Bullet* b = new Bullet(MeshOne, pixelShader, 10.0f, 0.1f, vertexShader, XMFLOAT4(1, 1, 1, 1), diffuseTexture, normalMap, samplerOptions, MainCamera->GetTransform()->GetPosition(), vel, XMFLOAT3(.1f,.1f,.1f));
+		b->GetTransform()->SetRotation(MainCamera->GetTransform()->GetPitchYawRoll());
+		bullets.push_back(b);
 	}
 
 	for (int i = 0; i < bullets.size(); i++) {
@@ -435,6 +437,13 @@ void Game::Draw(float deltaTime, float totalTime)
 		pixelShader->SetFloat("Specularity", asteroids[i]->GetMaterial()->GetSpec());
 		pixelShader->CopyAllBufferData();
 		asteroids[i]->Draw(MainCamera);
+	}
+
+	for (int i = 0; i < bullets.size(); i++)
+	{
+		pixelShader->SetFloat("Specularity", bullets[i]->GetMaterial()->GetSpec());
+		pixelShader->CopyAllBufferData();
+		bullets[i]->Draw(MainCamera);
 	}
 
 	// === SpriteBatch =====================================
