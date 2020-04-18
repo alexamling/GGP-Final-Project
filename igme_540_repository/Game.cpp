@@ -270,10 +270,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		ID3D11ShaderResourceView* fontSheet;
 		spriteFont->GetSpriteSheet(&fontSheet);
 
-		// Begin the batch, draw lots of stuff, then end it
+		// Begin the batch
 		spriteBatch->Begin();
 
-		// Draw some arbitrary text
+		// Draw the text score
 		spriteFont->DrawString(
 			spriteBatch.get(),
 			L"Score: 00",

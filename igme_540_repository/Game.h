@@ -72,4 +72,7 @@ private:
 	// Sprite batch resources
 	std::unique_ptr<DirectX::SpriteBatch> spriteBatch;
 	std::unique_ptr<DirectX::SpriteFont> spriteFont;
+
+	//variable for game score
+	float score;
 };
