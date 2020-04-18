@@ -1,5 +1,4 @@
 #include "Camera.h"
-
 using namespace DirectX;
 
 Camera::Camera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rot, float fov, float aspectRatio, float nearClip, float farClip, float moveSpeed, float rotateSpeed, float mouseRotateSpeed)

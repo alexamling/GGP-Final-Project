@@ -2,15 +2,21 @@
 
 #include "DXCore.h"
 #include <DirectXMath.h>
+
 #include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
+
 #include "Mesh.h"
 #include "Entity.h"
 #include "Camera.h"
+
 #include "Vertex.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
 #include "SimpleShader.h"
+
 #include "WICTextureLoader.h"
+#include "SpriteBatch.h"
+#include "SpriteFont.h"
 
 class Game 
 	: public DXCore
@@ -62,4 +68,11 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerOptions;
+
+	// Sprite batch resources
+	std::unique_ptr<DirectX::SpriteBatch> spriteBatch;
+	std::unique_ptr<DirectX::SpriteFont> spriteFont;
+
+	//variable for game score
+	float score;
 };
