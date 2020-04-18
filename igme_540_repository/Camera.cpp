@@ -1,7 +1,7 @@
 #include "Camera.h"
 using namespace DirectX;
 
-Camera::Camera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rot, float fov, float aspectRatio, float nearClip, float farClip, float moveSpeed, float rotateSpeed, float mouseRotateSpeed)
+Camera::Camera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rot, float fov, int width, int height, float nearClip, float farClip, float moveSpeed, float rotateSpeed, float mouseRotateSpeed, HWND window)
 {
 	transform = Transform();
 	transform.SetPosition(pos.x, pos.y, pos.z);
@@ -13,13 +13,14 @@ Camera::Camera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rot, float fov, float as
 	this->moveSpeed = moveSpeed;
 	this->rotateSpeed = rotateSpeed;
 	this->mouseRotateSpeed = mouseRotateSpeed;
+	this->mouseCenter = mouseCenter;
 
 	viewMatrix = XMFLOAT4X4();
 	dirtyView = true;
 	viewInv = XMFLOAT4X4();
 	dirtyViewInv = true;
 	projectionMatrix = XMFLOAT4X4();
-	UpdateProjectionMatrix(aspectRatio);
+	UpdateProjectionMatrix(width, height, window);
 }
 
 Transform* Camera::GetTransform()
@@ -77,9 +78,14 @@ void Camera::UpdateViewMatrix()
 	dirtyViewInv = true;
 }
 
-void Camera::UpdateProjectionMatrix(float aspectRatio)
+void Camera::UpdateProjectionMatrix(int width, int height, HWND window)
 {
-	XMStoreFloat4x4(&projectionMatrix, XMMatrixPerspectiveFovLH(fov, aspectRatio, nearClip, farClip));
+	XMStoreFloat4x4(&projectionMatrix, XMMatrixPerspectiveFovLH(fov, (float)width/(float)height, nearClip, farClip));
+	
+	RECT r;
+	GetWindowRect(window, &r);
+	mouseCenter.x = width / 2 + r.left;
+	mouseCenter.y = height / 2 + r.top;
 }
 
 void Camera::Update(float dt, HWND windowHandle)
@@ -134,17 +140,16 @@ void Camera::Update(float dt, HWND windowHandle)
 	// mouse rotation
 	POINT mousePos = {};
 	GetCursorPos(&mousePos);
-	ScreenToClient(windowHandle, &mousePos);
+	//ScreenToClient(windowHandle, &mousePos);
 
-	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-		POINT diff = {};
-		diff.x = mousePos.x - prevMousePos.x;
-		diff.y = mousePos.y - prevMousePos.y;
+	POINT diff = {};
+	diff.x = mousePos.x - mouseCenter.x;
+	diff.y = mousePos.y - mouseCenter.y;
 
-		transform.RotateRelative(dt * diff.y * mouseRotateSpeed, dt * diff.x * mouseRotateSpeed, 0);
-		dirtyView = true;
-	}
-	prevMousePos = mousePos;
+	transform.RotateRelative(dt * diff.y * mouseRotateSpeed, dt * diff.x * mouseRotateSpeed, 0);
+	dirtyView = true;
+
+	SetCursorPos(mouseCenter.x, mouseCenter.y);
 
 	// viewMatrix is updated when dirty
 }

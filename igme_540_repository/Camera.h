@@ -13,7 +13,7 @@ private:
 	DirectX::XMFLOAT4X4 viewMatrix;
 	DirectX::XMFLOAT4X4 viewInv;
 	DirectX::XMFLOAT4X4 projectionMatrix;
-	POINT prevMousePos;
+	POINT mouseCenter;
 	float fov;
 	float nearClip;
 	float farClip;
@@ -26,7 +26,7 @@ private:
 
 public:
 	// constructors
-	Camera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rot, float fov, float aspectRatio, float nearClip, float farClip, float moveSpeed, float rotateSpeed, float mouseRotateSpeed);
+	Camera(DirectX::XMFLOAT3 pos, DirectX::XMFLOAT3 rot, float fov, int width, int height, float nearClip, float farClip, float moveSpeed, float rotateSpeed, float mouseRotateSpeed, HWND window);
 
 	// getters
 	Transform* GetTransform();
@@ -36,7 +36,7 @@ public:
 
 	// methods
 	void UpdateViewMatrix();
-	void UpdateProjectionMatrix(float aspectRatio);
+	void UpdateProjectionMatrix(int width, int height, HWND window);
 	void Update(float dt, HWND windowHandle);
 };
 
