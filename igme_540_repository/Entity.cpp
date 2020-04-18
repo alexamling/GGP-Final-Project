@@ -53,11 +53,13 @@ void Entity::Draw( Camera* mainCamera)
 bool Entity::checkCollision(Entity* other)
 {
 	float bounds = (this->radius + other->radius);
-	XMFLOAT3 ori = entityTrans->GetPosition();
-	XMFLOAT3 tar = other->entityTrans->GetPosition();
+	XMVECTOR vectorSub = XMVectorSubtract(XMLoadFloat3(&entityTrans->GetPosition()),XMLoadFloat3(&other->entityTrans->GetPosition()));
+	XMVECTOR length = XMVector3Length(vectorSub);
+
+	float distance = 0.0f;
+	XMStoreFloat(&distance, length);
 	
-	
-	if (bounds <= bounds)
+	if (distance <= bounds)
 	{
 		return false;
 	}
