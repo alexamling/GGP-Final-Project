@@ -79,7 +79,7 @@ void Game::Init()
 	XMVECTOR pos = XMVectorSet(0, 0, -5, 0);
 	XMVECTOR ori = XMVectorSet(0, 0, 0, 0);
 
-	MainCamera = new Camera(XMFLOAT3(0, 0, -2), XMFLOAT3(0, 0, 0), 70, (float)this->width / this->height, .01f, 500.f, 1, 1, 10);
+	MainCamera = new Camera(XMFLOAT3(0, 0, -2), XMFLOAT3(0, 0, 0), 70, (float)this->width / this->height, .01f, 500.f, 1, 1, 1);
 
 	dirLight.DiffuseColor = XMFLOAT3(0.8f, 0.8f, 0.8f);
 	dirLight.Direction = XMFLOAT3(0, 3, 0);
