@@ -8,12 +8,32 @@ Asteroid::Asteroid(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float
 	entityVelocity = velocity;
 }
 
-void Asteroid::Split(Asteroid newAsteroid)
+bool Asteroid::Split()
 {
+	asteroidSize -= 1;
+	if (asteroidSize <= 0)
+	{
+		return false;
+	}
+	else
+	{
+		entityTrans->SetScale(1, 1, 1);
+		return true;
+	}
 }
 
 void Asteroid::Update(float deltaTime,XMVECTOR position,float playerRadius)
 {
 	entityTrans->MoveAbsolute(entityVelocity.x * deltaTime, entityVelocity.y * deltaTime, entityVelocity.z * deltaTime);
 	checkCollision(position,playerRadius);
+}
+
+XMFLOAT3 Asteroid::GetVelocity()
+{
+	return entityVelocity;
+}
+
+void Asteroid::SetVelocity(XMFLOAT3 velocity)
+{
+	entityVelocity = velocity;
 }

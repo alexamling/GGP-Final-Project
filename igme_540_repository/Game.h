@@ -41,7 +41,7 @@ private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
 	void CreateBasicGeometry();
-	void SpawnAsteroids();
+	void SplitAsteroid(int index);
 
 	
 	// Note the usage of ComPtr below

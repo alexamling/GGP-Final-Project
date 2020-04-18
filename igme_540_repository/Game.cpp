@@ -192,6 +192,20 @@ void Game::CreateBasicGeometry()
 	}
 }
 
+void Game::SplitAsteroid(int index)
+{
+	bool split = asteroids[index]->Split();
+	if (split)
+	{
+		// create new asteroid from old asteroid
+		// change asteroid velocity
+	}
+	else
+	{
+		asteroids.erase(asteroids.begin + index);
+	}
+}
+
 
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
