@@ -279,7 +279,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		spriteFont->DrawString(
 			spriteBatch.get(),
 			L"Score: 00",
-			XMFLOAT2(10, 120));
+			XMFLOAT2((float)(this->width)/2, 20));
 
 		// Done with the batch
 		spriteBatch->End();
