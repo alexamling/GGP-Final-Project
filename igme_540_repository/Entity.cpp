@@ -1,7 +1,7 @@
 #include "Entity.h"
 
 Entity::Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad,
-	SimpleVertexShader* vertexShader, XMFLOAT3 tintInput,
+	SimpleVertexShader* vertexShader, XMFLOAT4 tintInput,
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt)
 {
@@ -9,7 +9,7 @@ Entity::Entity(Mesh* mesh, SimplePixelShader* pixelShader, float spec, float rad
 	
 	entityMesh = mesh;
 	
-	mat = new Material(XMLoadFloat3(&tintInput), spec, pixelShader, vertexShader, diffuseTexture,normalMap,sampOpt);
+	mat = new Material(XMLoadFloat4(&tintInput), spec, pixelShader, vertexShader, diffuseTexture,normalMap,sampOpt);
 
 	radius = rad;
 	colliding = false;
@@ -39,7 +39,7 @@ Material* Entity::GetMaterial()
 void Entity::Draw( Camera* mainCamera)
 {
 	SimpleVertexShader* vs = Entity::mat->GetVertexShader(); //   Simplifies next few lines 
-	vs->SetFloat3("color", mat->GetColorTint());
+	vs->SetFloat4("color", mat->GetColorTint());
 	vs->SetMatrix4x4("world", entityTrans->GetWorldMatrix());
 	vs->SetMatrix4x4("view", mainCamera->GetViewMatrix());
 	vs->SetMatrix4x4("proj", mainCamera->GetProjectionMatrix());
@@ -61,13 +61,13 @@ void Entity::checkCollision(XMVECTOR position, float playerRadius)
 	
 	if (distance > bounds)
 	{
-		XMFLOAT3 newTint = XMFLOAT3(0, 1, 0);
-		mat->SetColorTint(XMLoadFloat3(&newTint));
+		XMFLOAT4 newTint = XMFLOAT4(0,1,0,0);
+		mat->SetColorTint(XMLoadFloat4(&newTint));
 		colliding = false;
 	}
 	else {
-		XMFLOAT3 newTint = XMFLOAT3(1,0,0);
-		mat->SetColorTint(XMLoadFloat3(&newTint));
+		XMFLOAT4 newTint = XMFLOAT4(1,0,0,0);
+		mat->SetColorTint(XMLoadFloat4(&newTint));
 		colliding = true;
 	}
 }

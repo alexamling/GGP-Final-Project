@@ -125,6 +125,30 @@ void Game::Init()
 	spriteBatch = std::make_unique<SpriteBatch>(context.Get());
 	spriteFont = std::make_unique<SpriteFont>(device.Get(), GetFullPathTo_Wide(L"../../Assets/Fonts/Arial.spritefont").c_str());
 
+	// Prepare our sky resources ----------------------------
+	skyMesh = MeshThree;
+
+	skySRV = CreateCubemap(
+		GetFullPathTo_Wide(L"../../Assets/Stars/right.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/left.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/up.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/down.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/forward.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Stars/back.png").c_str());
+
+	// Make the sky rasterizer state
+	D3D11_RASTERIZER_DESC rastDesc = {};
+	rastDesc.FillMode = D3D11_FILL_SOLID;
+	rastDesc.CullMode = D3D11_CULL_FRONT;
+	rastDesc.DepthClipEnable = true;
+	device->CreateRasterizerState(&rastDesc, skyRasterState.GetAddressOf());
+
+	// Make the sky depth state
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&dsDesc, skyDepthState.GetAddressOf());
 }
 
 // --------------------------------------------------------
@@ -158,26 +182,15 @@ void Game::CreateBasicGeometry()
 
 	MeshOne = new Mesh(device, context, GetFullPathTo("../../Assets/Models/sphere.obj").c_str());
 
-	//Smaller Triangle
 	MeshTwo = new Mesh(device,context,GetFullPathTo("../../Assets/Models/helix.obj").c_str());
 
-	Vertex vertices[] =
-	{
-		{ XMFLOAT3(-10.0f, -2.0f, -10.0f), tempNormal, tempTangent, tempUV },
-		{ XMFLOAT3(-10.0f, -2.0f, +10.0f), tempNormal, tempTangent, tempUV },
-		{ XMFLOAT3(+10.0f, -2.0f, +10.0f), tempNormal, tempTangent, tempUV },
-		{ XMFLOAT3(+10.0f, -2.0f, -10.0f), tempNormal, tempTangent, tempUV }
-	};
+	MeshThree = new Mesh(device, context, GetFullPathTo("../../Assets/Models/cube.obj").c_str());
 
-	UINT indices2[] = {0,1,3,1,2,3};
-	//This one is a square
-	MeshThree = new Mesh(vertices, 4, indices2, 6, device, context);
-
-	XMFLOAT3 red = XMFLOAT3(0.7f, 0.0f, 0.0f);
-	XMFLOAT3 green = XMFLOAT3(0.0f, 0.7f, 0.0f);
-	XMFLOAT3 blue = XMFLOAT3(0.1f, 0.1f, 0.7f);
-	XMFLOAT3 black = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	XMFLOAT3 white = XMFLOAT3(0.7f, 0.7f, 0.7f);
+	XMFLOAT4 red = XMFLOAT4(0.7f, 0.0f, 0.0f,0);
+	XMFLOAT4 green = XMFLOAT4(0.0f, 0.7f, 0.0f,0);
+	XMFLOAT4 blue = XMFLOAT4(0.1f, 0.1f, 0.7f,0);
+	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f,0);
+	XMFLOAT4 white = XMFLOAT4(0.7f, 0.7f, 0.7f,0);
 
 	XMFLOAT3 pos;
 	XMFLOAT3 vel;
@@ -209,7 +222,7 @@ bool Game::SplitAsteroid(int index)
 		vel.z = (rand() % 2) - 1;
 		// create new asteroid from old asteroid
 		asteroids.push_back(new Asteroid(MeshOne, pixelShader, 10.0f, 0.75f, 
-			vertexShader, XMFLOAT3(0.7f, 0.7f, 0.7f),
+			vertexShader, XMFLOAT4(0.7f, 0.7f, 0.7f,0),
 			diffuseTexture, normalMap, 
 			samplerOptions, asteroids[index]->GetTransform()->GetPosition(), vel));
 		// change asteroid velocity
@@ -220,8 +233,9 @@ bool Game::SplitAsteroid(int index)
 	}
 	else
 	{
-		asteroids.erase(asteroids.begin + index);
+		asteroids.erase(asteroids.begin() + index);
 	}
+	return split;
 }
 
 
@@ -368,7 +382,7 @@ void Game::Update(float deltaTime, float totalTime)
 		asteroids[i]->Update(deltaTime,XMLoadFloat3(&MainCamera->GetTransform()->GetPosition()),0.75f);
 		if (asteroids[i]->colliding)
 		{
-
+			SplitAsteroid(i);
 		}
 	}
 	MainCamera->Update(deltaTime,this->hWnd);
@@ -427,6 +441,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		pixelShader->CopyAllBufferData();
 		asteroids[i]->Draw(MainCamera);
 	}
+
+	RenderSky();
 
 	// === SpriteBatch =====================================
 	// See these links for more info!
