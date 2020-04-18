@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 Camera::Camera(XMVECTOR position, XMVECTOR orientation, float aspectRatio, 
-	float field, float nClip, float fClip, float move, float look)
+	float fov, float nClip, float fClip, float move, float look)
 {
 	//Camera transform
 	trans = new Transform();
@@ -17,7 +17,7 @@ Camera::Camera(XMVECTOR position, XMVECTOR orientation, float aspectRatio,
 	trans->SetRotation(ori.x,ori.y,ori.z);
 
 	//Camera render specifications
-	FoV = field;
+	FoV = fov;
 	nearClip = nClip;
 	farClip = fClip;
 	
