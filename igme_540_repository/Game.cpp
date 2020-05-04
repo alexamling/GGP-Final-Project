@@ -60,7 +60,7 @@ Game::~Game()
 	delete bloomExtractPS;
 	delete bloomCombinePS;
 	delete gaussianBlurPS;
-	delete bloomLevelIntensities;
+	//delete bloomLevelIntensities;
 
 	delete MeshOne;
 	delete MeshTwo;
@@ -339,6 +339,8 @@ void Game::CreateBasicGeometry()
 
 	XMFLOAT3 pos;
 	XMFLOAT3 vel;
+	XMFLOAT3 rot;
+	XMFLOAT3 scale;
 	srand(time(0));
 	for (int i = 0; i < 256; i++)
 	{
@@ -348,11 +350,19 @@ void Game::CreateBasicGeometry()
 		vel.x = (rand() % 2) - 1;
 		vel.y = (rand() % 2) - 1;
 		vel.z = (rand() % 2) - 1;
+		rot.x = (rand() % 360);
+		rot.y = (rand() % 360);
+		rot.z = (rand() % 360);
+		scale.x = .3 + (rand() % 3) * .1;
+		scale.y = .3 + (rand() % 3) * .1;
+		scale.z = .3 + (rand() % 3) * .1;
 		asteroids.push_back(new Asteroid(
 			MeshOne, pixelShader, 10.0f, 0.75f, 
 			vertexShader, brown, 
 			diffuseTexture, normalMap, 
 			samplerOptions, pos, vel));
+		asteroids[i]->GetTransform()->SetScale(scale);
+		asteroids[i]->GetTransform()->SetRotation(rot);
 	}
 }
 
@@ -554,7 +564,7 @@ void Game::Update(float deltaTime, float totalTime)
 			XMFLOAT3 cameraVel = MainCamera->GetVelocity();
 			XMFLOAT3 vel = XMFLOAT3(0, 0, 10.f);
 			XMStoreFloat3(&vel, XMVector3Rotate(XMLoadFloat3(&vel) + XMLoadFloat3(&cameraVel), XMLoadFloat4(&(MainCamera->GetTransform()->GetPitchYawRoll()))));
-			Bullet* b = new Bullet(MeshOne, pixelShader, 10.0f, 0.1f, vertexShader, XMFLOAT4(1, 1, 1, 1), diffuseTexture, normalMap, samplerOptions, MainCamera->GetTransform()->GetPosition(), vel, XMFLOAT3(.1f,.1f,.1f));
+			Bullet* b = new Bullet(MeshTwo, pixelShader, 10.0f, 0.1f, vertexShader, XMFLOAT4(1, 1, 1, 1), diffuseTexture, normalMap, samplerOptions, MainCamera->GetTransform()->GetPosition(), vel, XMFLOAT3(.1f,.1f,.1f));
 			b->GetTransform()->SetRotation(MainCamera->GetTransform()->GetPitchYawRoll());
 			bullets.push_back(b);
 		}
