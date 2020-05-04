@@ -59,15 +59,18 @@ void Entity::checkCollision(XMVECTOR position, float playerRadius)
 	float distance = 0.0f;
 	XMStoreFloat(&distance, length);
 	
+	XMFLOAT4 newTint = XMFLOAT4(.8,.8,.4,0);
+	mat->SetColorTint(XMLoadFloat4(&newTint));
+
 	if (distance > bounds)
 	{
-		XMFLOAT4 newTint = XMFLOAT4(0,1,0,0);
-		mat->SetColorTint(XMLoadFloat4(&newTint));
+		//XMFLOAT4 newTint = XMFLOAT4(0,1,0,0);
+		//mat->SetColorTint(XMLoadFloat4(&newTint));
 		colliding = false;
 	}
 	else {
-		XMFLOAT4 newTint = XMFLOAT4(1,0,0,0);
-		mat->SetColorTint(XMLoadFloat4(&newTint));
+		//XMFLOAT4 newTint = XMFLOAT4(1,0,0,0);
+		//mat->SetColorTint(XMLoadFloat4(&newTint));
 		colliding = true;
 	}
 }

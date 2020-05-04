@@ -47,13 +47,13 @@ void Asteroid::CheckCollision(XMVECTOR position, float playerRadius, std::vector
 
 		if (distance > bounds)
 		{
-			XMFLOAT4 newTint = XMFLOAT4(0, 1, 0, 0);
-			mat->SetColorTint(XMLoadFloat4(&newTint));
+			//XMFLOAT4 newTint = XMFLOAT4(0, 1, 0, 0);
+			//mat->SetColorTint(XMLoadFloat4(&newTint));
 			colliding = false;
 		}
 		else {
-			XMFLOAT4 newTint = XMFLOAT4(1, 0, 0, 0);
-			mat->SetColorTint(XMLoadFloat4(&newTint));
+			//XMFLOAT4 newTint = XMFLOAT4(1, 0, 0, 0);
+			//mat->SetColorTint(XMLoadFloat4(&newTint));
 			colliding = true;
 			delete bullets->at(i);
 			bullets->erase(bullets->begin() + i);

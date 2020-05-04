@@ -56,9 +56,11 @@ Game::~Game()
 	delete skyPS;
 
 	delete ppVS;
+	delete ppPS;
 	delete bloomExtractPS;
 	delete bloomCombinePS;
 	delete gaussianBlurPS;
+	delete bloomLevelIntensities;
 
 	delete MeshOne;
 	delete MeshTwo;
@@ -114,14 +116,14 @@ void Game::Init()
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),	// Passing in the context auto-generates mipmaps!!
-		GetFullPathTo_Wide(L"../../Assets/Textures/brick.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Textures/rock.png").c_str(),
 		nullptr,		// We don't need the texture ref ourselves
 		diffuseTexture.GetAddressOf()); // We do need an SRV
 
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),	// Passing in the context auto-generates mipmaps!!
-		GetFullPathTo_Wide(L"../../Assets/Textures/brick_normal.png").c_str(),
+		GetFullPathTo_Wide(L"../../Assets/Textures/rock_normal.png").c_str(),
 		nullptr,		// We don't need the texture ref ourselves
 		normalMap.GetAddressOf()); // We do need an SRV
 
@@ -170,7 +172,7 @@ void Game::Init()
 
 	// Boom setup -------------------------------------------------------------
 	bloomLevels = 2;
-	bloomThreshold = 0.15f;
+	bloomThreshold = 0.65f;
 	bloomLevelIntensities[0] = 1.0f;
 	bloomLevelIntensities[1] = 1.0f;
 
@@ -323,9 +325,9 @@ void Game::CreateBasicGeometry()
 	XMFLOAT3 tempTangent = XMFLOAT3(0.0f, 0.0f, 1.0f);
 	XMFLOAT2 tempUV = XMFLOAT2(0.0f,0.0f);
 
-	MeshOne = new Mesh(device, context, GetFullPathTo("../../Assets/Models/sphere.obj").c_str());
+	MeshOne = new Mesh(device, context, GetFullPathTo("../../Assets/Models/asteroid.obj").c_str());
 
-	MeshTwo = new Mesh(device,context,GetFullPathTo("../../Assets/Models/helix.obj").c_str());
+	MeshTwo = new Mesh(device,context,GetFullPathTo("../../Assets/Models/sphere.obj").c_str());
 
 	MeshThree = new Mesh(device, context, GetFullPathTo("../../Assets/Models/cube.obj").c_str());
 
@@ -333,7 +335,7 @@ void Game::CreateBasicGeometry()
 	XMFLOAT4 green = XMFLOAT4(0.0f, 0.7f, 0.0f,0);
 	XMFLOAT4 blue = XMFLOAT4(0.1f, 0.1f, 0.7f,0);
 	XMFLOAT4 black = XMFLOAT4(0.0f, 0.0f, 0.0f,0);
-	XMFLOAT4 white = XMFLOAT4(0.7f, 0.7f, 0.7f,0);
+	XMFLOAT4 brown = XMFLOAT4(0.6f, 0.7f, 0.3f,0);
 
 	XMFLOAT3 pos;
 	XMFLOAT3 vel;
@@ -348,7 +350,7 @@ void Game::CreateBasicGeometry()
 		vel.z = (rand() % 2) - 1;
 		asteroids.push_back(new Asteroid(
 			MeshOne, pixelShader, 10.0f, 0.75f, 
-			vertexShader, white, 
+			vertexShader, brown, 
 			diffuseTexture, normalMap, 
 			samplerOptions, pos, vel));
 	}
@@ -373,11 +375,13 @@ bool Game::SplitAsteroid(int index)
 		vel.y *= -1;
 		vel.z *= -1;
 		asteroids[index]->SetVelocity(vel);
+		score++;
 	}
 	else
 	{
 		delete asteroids[index];
 		asteroids.erase(asteroids.begin() + index);
+		score += 2;
 	}
 	return split;
 }
@@ -690,11 +694,15 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Begin the batch
 		spriteBatch->Begin();
 
+		//Stringifyed score
+		std::string s = "Score " + std::to_string(score);
+		char const* pchar = +s.c_str();  //use char const* as target type
+
 		// Draw the text score
 		spriteFont->DrawString(
 			spriteBatch.get(),
-			L"Score: 00",
-			XMFLOAT2((float)(this->width)/2, 20));
+			pchar,
+			XMFLOAT2((float)(this->width) / 2 - 100, 20));
 
 		// Done with the batch
 		spriteBatch->End();
