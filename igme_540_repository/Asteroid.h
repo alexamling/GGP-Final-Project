@@ -10,8 +10,8 @@ class Asteroid : public Entity
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap,
 			Microsoft::WRL::ComPtr<ID3D11SamplerState> sampOpt, XMFLOAT3 position, XMFLOAT3 velocity, int size = 3);
 		bool Split();
-		void Update(float deltaTime, XMVECTOR position, float playerRadius, std::vector<Bullet*> bullets);
-		void CheckCollision(XMVECTOR position, float playerRadius, std::vector<Bullet*> bullets);
+		void Update(float deltaTime, XMVECTOR position, float playerRadius, std::vector<Bullet*>* bullets);
+		void CheckCollision(XMVECTOR position, float playerRadius, std::vector<Bullet*>* bullets);
 		XMFLOAT3 GetVelocity();
 		void SetVelocity(XMFLOAT3 velocity);
 		int asteroidSize;

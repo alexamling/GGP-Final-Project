@@ -384,7 +384,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	for (int i = 0; i < asteroids.size(); i++) 
 	{
-		asteroids[i]->Update(deltaTime,XMLoadFloat3(&MainCamera->GetTransform()->GetPosition()),0.75f,bullets);
+		asteroids[i]->Update(deltaTime,XMLoadFloat3(&MainCamera->GetTransform()->GetPosition()),0.75f,&bullets);
 		if (asteroids[i]->colliding)
 		{
 			SplitAsteroid(i);
