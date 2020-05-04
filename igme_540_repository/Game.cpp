@@ -56,6 +56,7 @@ Game::~Game()
 	delete skyPS;
 
 	delete ppVS;
+	delete ppPS;
 	delete bloomExtractPS;
 	delete bloomCombinePS;
 	delete gaussianBlurPS;
