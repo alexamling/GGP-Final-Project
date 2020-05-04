@@ -1,9 +1,10 @@
 #include "Game.h"
 
+#include "DDSTextureLoader.h"
+
 // Needed for a helper function to read compiled shader files from the hard drive
 #pragma comment(lib, "d3dcompiler.lib")
 #include <d3dcompiler.h>
-
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -29,6 +30,11 @@ Game::Game(HINSTANCE hInstance)
 	CreateConsoleWindow(500, 120, 32, 120);
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
+	pixelShader = 0;
+	vertexShader = 0;
+	ppVS = 0;
+	ppPS = 0;
+
 
 }
 
@@ -45,6 +51,15 @@ Game::~Game()
 	//   to call Release() on each DirectX object
 	delete vertexShader;
 	delete pixelShader;
+
+	delete skyVS;
+	delete skyPS;
+
+	delete ppVS;
+	delete bloomExtractPS;
+	delete bloomCombinePS;
+	delete gaussianBlurPS;
+
 	delete MeshOne;
 	delete MeshTwo;
 	delete MeshThree;
@@ -149,6 +164,71 @@ void Game::Init()
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(&dsDesc, skyDepthState.GetAddressOf());
+
+	// Create post process resources
+	ResizeAllPostProcessResources();
+
+	// Boom setup -------------------------------------------------------------
+	bloomLevels = 2;
+	bloomThreshold = 0.15f;
+	bloomLevelIntensities[0] = 1.0f;
+	bloomLevelIntensities[1] = 1.0f;
+
+	// Sampler state for post processing
+	D3D11_SAMPLER_DESC ppSampDesc = {};
+	ppSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ppSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ppSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ppSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	ppSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&ppSampDesc, ppSampler.GetAddressOf());
+}
+
+// ------------------------------------------------------------
+// Resizes (by releasing and re-creating) the resources
+// required for post processing.  Note the useage of 
+// ComPtr's .ReleaseAndGetAddressOf() method for this. 
+// 
+// We only need to do this at start-up and whenever the 
+// window is resized.
+// ------------------------------------------------------------
+void Game::ResizePostProcessResources()
+{
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = width;
+	textureDesc.Height = height;
+	textureDesc.ArraySize = 1;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE; // Will render to it and sample from it!
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.MipLevels = 1;
+	textureDesc.MiscFlags = 0;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	ID3D11Texture2D* ppTexture;
+	device->CreateTexture2D(&textureDesc, 0, &ppTexture);
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = textureDesc.Format;
+	rtvDesc.Texture2D.MipSlice = 0;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+	device->CreateRenderTargetView(ppTexture, &rtvDesc, ppRTV.ReleaseAndGetAddressOf());
+
+	// Create the Shader Resource View
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+	device->CreateShaderResourceView(ppTexture, &srvDesc, ppSRV.ReleaseAndGetAddressOf());
+
+	// We don't need the texture reference itself no mo'
+	ppTexture->Release();
 }
 
 // --------------------------------------------------------
@@ -165,9 +245,72 @@ void Game::LoadShaders()
 	pixelShader = new SimplePixelShader(device.Get(), context.Get(), GetFullPathTo_Wide(L"PixelShader.cso").c_str());
 	skyVS = new SimpleVertexShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"SkyVS.cso").c_str());
 	skyPS = new SimplePixelShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"SkyPS.cso").c_str());
+	ppVS = new SimpleVertexShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"PostProcessVS.cso").c_str());
+	ppPS = new SimplePixelShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"PostProcessPS.cso").c_str());
+	bloomExtractPS = new SimplePixelShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"BloomExtractPS.cso").c_str());
+	bloomCombinePS = new SimplePixelShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"BloomCombinePS.cso").c_str());
+	gaussianBlurPS = new SimplePixelShader(device.Get(),context.Get(),GetFullPathTo_Wide(L"GaussianBlurPS.cso").c_str());
 }
 
+// ------------------------------------------------------------
+// Resizes (by releasing and re-creating) the resources
+// required for post processing.  Note the useage of 
+// ComPtr's .ReleaseAndGetAddressOf() method for this. 
+// ------------------------------------------------------------
+void Game::ResizeAllPostProcessResources()
+{
+	ResizeOnePostProcessResource(ppRTV, ppSRV, 1.0f);
+	ResizeOnePostProcessResource(bloomExtractRTV, bloomExtractSRV, 0.5f);
 
+	float rtScale = 0.5f;
+	for (int i = 0; i < BLOOM_LEVELS; i++)
+	{
+		ResizeOnePostProcessResource(blurHorizontalRTV[i], blurHorizontalSRV[i], rtScale);
+		ResizeOnePostProcessResource(blurVerticalRTV[i], blurVerticalSRV[i], rtScale);
+
+		// Each successive bloom level is half the resolution
+		rtScale *= 0.5f;
+	}
+}
+
+void Game::ResizeOnePostProcessResource(Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& rtv, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv, float renderTargetScale)
+{
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = (unsigned int)(width * renderTargetScale);
+	textureDesc.Height = (unsigned int)(height * renderTargetScale);
+	textureDesc.ArraySize = 1;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE; // Will render to it and sample from it!
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.MipLevels = 1;
+	textureDesc.MiscFlags = 0;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	ID3D11Texture2D* ppTexture;
+	device->CreateTexture2D(&textureDesc, 0, &ppTexture);
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = textureDesc.Format;
+	rtvDesc.Texture2D.MipSlice = 0;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+	device->CreateRenderTargetView(ppTexture, &rtvDesc, rtv.ReleaseAndGetAddressOf());
+
+	// Create the Shader Resource View
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+	device->CreateShaderResourceView(ppTexture, &srvDesc, srv.ReleaseAndGetAddressOf());
+
+	// We don't need the texture reference itself no mo'
+	ppTexture->Release();
+}
 
 // --------------------------------------------------------
 // Creates the geometry we're going to draw - a single triangle for now
@@ -250,6 +393,9 @@ void Game::OnResize()
 	if (MainCamera != nullptr) {
 		MainCamera->UpdateProjectionMatrix(this->width, this->height, hWnd);
 	}
+
+	// Ensure we resize the post process resources!
+	ResizePostProcessResources();
 }
 
 // --------------------------------------------------------
@@ -411,6 +557,21 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
+	// Clear post process target too
+	context->ClearRenderTargetView(ppRTV.Get(), color);
+	context->ClearRenderTargetView(bloomExtractRTV.Get(), color);
+
+	for (int i = 0; i < BLOOM_LEVELS; i++)
+	{
+		context->ClearRenderTargetView(blurHorizontalRTV[i].Get(), color);
+		context->ClearRenderTargetView(blurVerticalRTV[i].Get(), color);
+	}
+
+	// --- Post Processing - Pre-Draw ---------------------
+	{
+		// Change the render target to the first one for bloom
+		context->OMSetRenderTargets(1, ppRTV.GetAddressOf(), depthStencilView.Get());
+	}
 
 	// Set the vertex and pixel shaders to use for the next Draw() command
 	//  - These don't technically need to be set every frame
@@ -443,6 +604,51 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	RenderSky();
+
+	// --- Post processing - Post-Draw -----------------------
+	{
+		// Turn OFF vertex and index buffers since we'll be using the
+		// full-screen triangle trick
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+		ID3D11Buffer* nothing = 0;
+		context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+		context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+
+		// This is the same vertex shader used for all post processing, so set it once
+		ppVS->SetShader();
+
+		// Assuming all of the post process steps have a single sampler at register 0
+		context->PSSetSamplers(0, 1, ppSampler.GetAddressOf());
+
+		// Handle the bloom extraction
+		BloomExtract();
+
+		// Any bloom actually happening?
+		if (bloomLevels >= 1)
+		{
+			float levelScale = 0.5f;
+			SingleDirectionBlur(levelScale, XMFLOAT2(1, 0), blurHorizontalRTV[0], bloomExtractSRV); // Bloom extract is the source
+			SingleDirectionBlur(levelScale, XMFLOAT2(0, 1), blurVerticalRTV[0], blurHorizontalSRV[0]);
+
+			// Any other levels?
+			for (int i = 1; i < bloomLevels; i++)
+			{
+				levelScale *= 0.5f; // Half the size of the previous
+				SingleDirectionBlur(levelScale, XMFLOAT2(1, 0), blurHorizontalRTV[i], blurVerticalSRV[i - 1]); // Previous blur is the source
+				SingleDirectionBlur(levelScale, XMFLOAT2(0, 1), blurVerticalRTV[i], blurHorizontalSRV[i]);
+			}
+		}
+
+		// Final combine
+		BloomCombine(); // This step should reset viewport and write to the back buffer since it's the last one
+
+		// Unbind shader resource views at the end of the frame,
+		// since we'll be rendering into one of those textures
+		// at the start of the next
+		ID3D11ShaderResourceView* nullSRVs[16] = {};
+		context->PSSetShaderResources(0, 16, nullSRVs);
+	}
 
 	// === SpriteBatch =====================================
 	// See these links for more info!
@@ -488,3 +694,91 @@ void Game::Draw(float deltaTime, float totalTime)
 	// the render target must be re-bound after every call to Present()
 	context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), depthStencilView.Get());
 }
+
+// Handles extracting the "bright" pixels to a second render target
+void Game::BloomExtract()
+{
+	// We're using a half-sized texture for bloom extract, so adjust the viewport
+	D3D11_VIEWPORT vp = {};
+	vp.Width = width * 0.5f;
+	vp.Height = height * 0.5f;
+	vp.MaxDepth = 1.0f;
+	context->RSSetViewports(1, &vp);
+
+	// Render to the BLOOM EXTRACT texture
+	context->OMSetRenderTargets(1, bloomExtractRTV.GetAddressOf(), 0);
+
+	// Activate the shader and set resources
+	bloomExtractPS->SetShader();
+	bloomExtractPS->SetShaderResourceView("pixels", ppSRV.Get()); // IMPORTANT: This step takes the original post process texture!
+	// Note: Sampler set already!
+
+	// Set post process specific data
+	bloomExtractPS->SetFloat("bloomThreshold", bloomThreshold);
+	bloomExtractPS->CopyAllBufferData();
+
+	// Draw exactly 3 vertices for our "full screen triangle"
+	context->Draw(3, 0);
+}
+
+// Blurs in a single direction, based on the "blurDirection" parameter
+// This allows us to use a single shader for both horizontal and vertical
+// blurring, rather than having to write two nearly-identical shaders
+void Game::SingleDirectionBlur(float renderTargetScale, DirectX::XMFLOAT2 blurDirection, Microsoft::WRL::ComPtr<ID3D11RenderTargetView> target, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sourceTexture)
+{
+	// Ensure our viewport matches our render target
+	D3D11_VIEWPORT vp = {};
+	vp.Width = width * renderTargetScale;
+	vp.Height = height * renderTargetScale;
+	vp.MaxDepth = 1.0f;
+	context->RSSetViewports(1, &vp);
+
+	// Target to which we're rendering
+	context->OMSetRenderTargets(1, target.GetAddressOf(), 0);
+
+	// Activate the shader and set resources
+	gaussianBlurPS->SetShader();
+	gaussianBlurPS->SetShaderResourceView("pixels", sourceTexture.Get()); // The texture from the previous step
+	// Note: Sampler set already!
+
+	// Set post process specific data
+	gaussianBlurPS->SetFloat2("pixelUVSize", XMFLOAT2(1.0f / (width * renderTargetScale), 1.0f / (height * renderTargetScale)));
+	gaussianBlurPS->SetFloat2("blurDirection", blurDirection);
+	gaussianBlurPS->CopyAllBufferData();
+
+	// Draw exactly 3 vertices for our "full screen triangle"
+	context->Draw(3, 0);
+}
+
+// Combines all bloom levels with the original post process target
+// Note: If a level isn't being used, it's still cleared to black
+//       so it won't have any impact on the final result
+void Game::BloomCombine()
+{
+	// Back to the full window viewport
+	D3D11_VIEWPORT vp = {};
+	vp.Width = (float)width;
+	vp.Height = (float)height;
+	vp.MaxDepth = 1.0f;
+	context->RSSetViewports(1, &vp);
+
+	// Render to the BACK BUFFER (since this is the last step!)
+	context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), 0);
+
+	// Activate the shader and set resources
+	bloomCombinePS->SetShader();
+	bloomCombinePS->SetShaderResourceView("originalPixels", ppSRV.Get()); // Set the original render
+	bloomCombinePS->SetShaderResourceView("bloomedPixels0", blurVerticalSRV[0].Get()); // And all other bloom levels
+	bloomCombinePS->SetShaderResourceView("bloomedPixels1", blurVerticalSRV[1].Get()); // And all other bloom levels
+
+	// Note: Sampler set already!
+
+	// Set post process specific data
+	bloomCombinePS->SetFloat("intensityLevel0", bloomLevelIntensities[0]);
+	bloomCombinePS->SetFloat("intensityLevel1", bloomLevelIntensities[1]);
+	bloomCombinePS->CopyAllBufferData();
+
+	// Draw exactly 3 vertices for our "full screen triangle"
+	context->Draw(3, 0);
+}
+

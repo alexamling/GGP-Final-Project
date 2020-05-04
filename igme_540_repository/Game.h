@@ -50,7 +50,18 @@ private:
 		const wchar_t* down,
 		const wchar_t* front,
 		const wchar_t* back);
-	
+	void ResizePostProcessResources();
+	void ResizeAllPostProcessResources();
+	void ResizeOnePostProcessResource(Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& rtv, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv, float renderTargetScale = 1.0f);
+
+	void BloomExtract();
+	void SingleDirectionBlur(
+		float renderTargetScale,
+		DirectX::XMFLOAT2 blurDirection,
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> target,
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> sourceTexture);
+	void BloomCombine();
+
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
 	//    Component Object Mode, which DirectX objects do
@@ -92,6 +103,33 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skySRV;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> skyRasterState;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> skyDepthState;
+
+
+	// Post processing resources for bloom
+	#define BLOOM_LEVELS 2
+	int bloomLevels;
+	float bloomThreshold;
+	float bloomLevelIntensities[BLOOM_LEVELS];
+
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> ppSampler; // Clamp sampler for post processing
+
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> ppRTV;		// Allows us to render to a texture
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ppSRV;		// Allows us to sample from the same texture
+	SimpleVertexShader* ppVS;
+	SimplePixelShader* ppPS;
+
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> bloomExtractRTV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bloomExtractSRV;
+
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> blurHorizontalRTV[BLOOM_LEVELS];
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> blurHorizontalSRV[BLOOM_LEVELS];
+
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> blurVerticalRTV[BLOOM_LEVELS];
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> blurVerticalSRV[BLOOM_LEVELS];
+
+	SimplePixelShader* bloomExtractPS;
+	SimplePixelShader* bloomCombinePS;
+	SimplePixelShader* gaussianBlurPS;
 
 	//variable for game score
 	float score;

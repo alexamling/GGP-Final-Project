@@ -6,7 +6,7 @@ struct VertexToPixel
 };
 
 // Texture reqs
-TextureCube sky : register(t0);
+TextureCube sky : register(t2);
 SamplerState samplerOptions : register(s0);
 
 
