@@ -541,7 +541,7 @@ void Game::Update(float deltaTime, float totalTime)
 	pntLight.Position = MainCamera->GetTransform()->GetPosition();
 
 	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-		if (totalTime - timeOfLastShot >= 1.0f) {
+		if (totalTime - timeOfLastShot >= .25f) {
 			timeOfLastShot = totalTime;
 			XMFLOAT3 vel = XMFLOAT3(0, 0, 10.f);
 			XMStoreFloat3(&vel, XMVector3Rotate(XMLoadFloat3(&vel), XMLoadFloat4(&(MainCamera->GetTransform()->GetPitchYawRoll()))));
