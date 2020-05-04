@@ -12,8 +12,12 @@ public:
 
 	//Setters
 	void SetPosition(float x, float y, float z);
+	void SetPosition(XMFLOAT3 newPosition);
 	void SetRotation(float pitch, float yaw, float roll);
+	void SetRotation(XMFLOAT3 newPitchYawRoll);
+	void SetRotation(XMFLOAT4 newPitchYawRoll);
 	void SetScale(float x, float y, float z);
+	void SetScale(XMFLOAT3 newScale);
 
 	//Getters
 	XMFLOAT3 GetPosition();

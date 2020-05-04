@@ -133,4 +133,6 @@ private:
 
 	//variable for game score
 	float score;
+
+	float timeOfLastShot;
 };

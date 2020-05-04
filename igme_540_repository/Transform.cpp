@@ -15,15 +15,39 @@ void Transform::SetPosition(float x, float y, float z)
 	dirty = true;
 }
 
+void Transform::SetPosition(XMFLOAT3 newPosition)
+{
+	position = newPosition;
+	dirty = true;
+}
+
 void Transform::SetRotation(float pitch, float yaw, float roll)
 {
 	XMStoreFloat4(&pitchYawRoll, XMQuaternionRotationRollPitchYaw(pitch, yaw, roll));
 	dirty = true;
 }
 
+void Transform::SetRotation(XMFLOAT3 newPitchYawRoll)
+{
+	XMStoreFloat4(&pitchYawRoll, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&newPitchYawRoll)));
+	dirty = true;
+}
+
+void Transform::SetRotation(XMFLOAT4 newPitchYawRoll)
+{
+	pitchYawRoll = newPitchYawRoll;
+	dirty = true;
+}
+
 void Transform::SetScale(float x, float y, float z)
 {
 	scale = XMFLOAT3(x, y, z);
+	dirty = true;
+}
+
+void Transform::SetScale(XMFLOAT3 newScale)
+{
+	scale = newScale;
 	dirty = true;
 }
 
