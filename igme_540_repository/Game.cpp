@@ -45,6 +45,8 @@ Game::~Game()
 	//   to call Release() on each DirectX object
 	delete vertexShader;
 	delete pixelShader;
+	delete skyVS;
+	delete skyPS;
 	delete MeshOne;
 	delete MeshTwo;
 	delete MeshThree;
