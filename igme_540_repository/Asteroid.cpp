@@ -27,10 +27,39 @@ bool Asteroid::Split()
 	}
 }
 
-void Asteroid::Update(float deltaTime,XMVECTOR position,float playerRadius)
+void Asteroid::Update(float deltaTime,XMVECTOR position,float playerRadius, std::vector<Bullet*> bullets)
 {
 	entityTrans->MoveAbsolute(entityVelocity.x * deltaTime, entityVelocity.y * deltaTime, entityVelocity.z * deltaTime);
-	checkCollision(position,playerRadius);
+	CheckCollision(position,playerRadius,bullets);
+}
+
+void Asteroid::CheckCollision(XMVECTOR position, float playerRadius, std::vector<Bullet*> bullets)
+{
+	for (int i = 0; i < bullets.size(); i++)
+	{
+		Bullet* bullet = bullets[i];
+		float bounds = (this->radius + bullet->radius);
+		XMVECTOR vectorSub = XMVectorSubtract(XMLoadFloat3(&entityTrans->GetPosition()), XMLoadFloat3(&bullet->GetTransform()->GetPosition()));
+		XMVECTOR length = XMVector3Length(vectorSub);
+
+		float distance = 0.0f;
+		XMStoreFloat(&distance, length);
+
+		if (distance > bounds)
+		{
+			XMFLOAT4 newTint = XMFLOAT4(0, 1, 0, 0);
+			mat->SetColorTint(XMLoadFloat4(&newTint));
+			colliding = false;
+		}
+		else {
+			XMFLOAT4 newTint = XMFLOAT4(1, 0, 0, 0);
+			mat->SetColorTint(XMLoadFloat4(&newTint));
+			colliding = true;
+			//delete bullets[i];
+			//bullets.erase(bullets.begin() + i);
+			i = bullets.size();
+		}
+	}
 }
 
 XMFLOAT3 Asteroid::GetVelocity()

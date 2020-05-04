@@ -18,5 +18,6 @@ public:
 
 	// methods
 	void Update(float dt);
+	float radius = .75f;
 };
 

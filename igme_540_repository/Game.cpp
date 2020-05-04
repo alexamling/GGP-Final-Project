@@ -233,6 +233,7 @@ bool Game::SplitAsteroid(int index)
 	}
 	else
 	{
+		delete asteroids[index];
 		asteroids.erase(asteroids.begin() + index);
 	}
 	return split;
@@ -383,7 +384,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	for (int i = 0; i < asteroids.size(); i++) 
 	{
-		asteroids[i]->Update(deltaTime,XMLoadFloat3(&MainCamera->GetTransform()->GetPosition()),0.75f);
+		asteroids[i]->Update(deltaTime,XMLoadFloat3(&MainCamera->GetTransform()->GetPosition()),0.75f,bullets);
 		if (asteroids[i]->colliding)
 		{
 			SplitAsteroid(i);
@@ -394,11 +395,14 @@ void Game::Update(float deltaTime, float totalTime)
 	pntLight.Position = MainCamera->GetTransform()->GetPosition();
 
 	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
-		XMFLOAT3 vel = XMFLOAT3(0, 0, 10.f);
-		XMStoreFloat3(&vel, XMVector3Rotate(XMLoadFloat3(&vel), XMLoadFloat4(&(MainCamera->GetTransform()->GetPitchYawRoll()))));
-		Bullet* b = new Bullet(MeshOne, pixelShader, 10.0f, 0.1f, vertexShader, XMFLOAT4(1, 1, 1, 1), diffuseTexture, normalMap, samplerOptions, MainCamera->GetTransform()->GetPosition(), vel, XMFLOAT3(.1f,.1f,.1f));
-		b->GetTransform()->SetRotation(MainCamera->GetTransform()->GetPitchYawRoll());
-		bullets.push_back(b);
+		if (totalTime - timeOfLastShot >= 1.0f) {
+			timeOfLastShot = totalTime;
+			XMFLOAT3 vel = XMFLOAT3(0, 0, 10.f);
+			XMStoreFloat3(&vel, XMVector3Rotate(XMLoadFloat3(&vel), XMLoadFloat4(&(MainCamera->GetTransform()->GetPitchYawRoll()))));
+			Bullet* b = new Bullet(MeshOne, pixelShader, 10.0f, 0.1f, vertexShader, XMFLOAT4(1, 1, 1, 1), diffuseTexture, normalMap, samplerOptions, MainCamera->GetTransform()->GetPosition(), vel, XMFLOAT3(.1f,.1f,.1f));
+			b->GetTransform()->SetRotation(MainCamera->GetTransform()->GetPitchYawRoll());
+			bullets.push_back(b);
+		}
 	}
 
 	for (int i = 0; i < bullets.size(); i++) {
