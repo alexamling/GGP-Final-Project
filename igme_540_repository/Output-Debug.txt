@@ -1,0 +1,96 @@
+﻿'DX11Starter.exe' (Win32): Loaded 'C:\Users\Ben\Documents\School\GGP\GGP-Final-Project\igme_540_repository\x64\Debug\DX11Starter.exe'. Symbols loaded.
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\ntdll.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\kernel32.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\KernelBase.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\user32.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\win32u.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\gdi32.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\gdi32full.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\msvcp_win.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\ucrtbase.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\ole32.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\combase.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\rpcrt4.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\bcryptprimitives.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\advapi32.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\msvcrt.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\sechost.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\D3DCompiler_47.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\d3d11.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\msvcp140d.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\cryptsp.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\kernel.appcore.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\vcruntime140d.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\vcruntime140_1d.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\dxgi.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\ucrtbased.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\DXCore.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\cfgmgr32.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\imm32.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\uxtheme.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\msctf.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\oleaut32.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\TextInputFramework.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\CoreMessaging.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\CoreUIComponents.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\SHCore.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\ntmarta.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\WinTypes.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\WinTypes.dll'. 
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\WinTypes.dll'
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\iertutil.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\clbcatq.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\DXGIDebug.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\ResourcePolicyClient.dll'. 
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\ResourcePolicyClient.dll'
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\DriverStore\FileRepository\u0352369.inf_amd64_275818c45a90b362\B352355\aticfx64.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\winmm.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\version.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\winmmbase.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\winmmbase.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\winmmbase.dll'. 
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\winmmbase.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\winmmbase.dll'
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\dwmapi.dll'. 
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\dwmapi.dll'
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\DriverStore\FileRepository\u0352369.inf_amd64_275818c45a90b362\B352355\atiuxp64.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\DriverStore\FileRepository\u0352369.inf_amd64_275818c45a90b362\B352355\atidxx64.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\setupapi.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\bcrypt.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\shell32.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\windows.storage.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\profapi.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\powrprof.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\umpdc.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\shlwapi.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\apphelp.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\amdihk64.dll'. Module was built without symbols.
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\d3d11_3SDKLayers.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\dcomp.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\dwmapi.dll'. 
+'DX11Starter.exe' (Win32): Loaded 'C:\Windows\System32\WindowsCodecs.dll'. 
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\WindowsCodecs.dll'
+The thread 0x266c has exited with code 0 (0x0).
+The thread 0x17e4 has exited with code 0 (0x0).
+The thread 0x1fd8 has exited with code 0 (0x0).
+The thread 0x397c has exited with code 0 (0x0).
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\amdihk64.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\setupapi.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\profapi.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\umpdc.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\powrprof.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\windows.storage.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\shlwapi.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\shell32.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\DriverStore\FileRepository\u0352369.inf_amd64_275818c45a90b362\B352355\atidxx64.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\DriverStore\FileRepository\u0352369.inf_amd64_275818c45a90b362\B352355\atiuxp64.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\version.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\winmmbase.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\winmm.dll'
+'DX11Starter.exe' (Win32): Unloaded 'C:\Windows\System32\DriverStore\FileRepository\u0352369.inf_amd64_275818c45a90b362\B352355\aticfx64.dll'
+The thread 0xbd4 has exited with code 0 (0x0).
+The thread 0x3bc4 has exited with code 0 (0x0).
+The thread 0x3198 has exited with code 0 (0x0).
+The thread 0x3ba8 has exited with code 0 (0x0).
+The thread 0x3040 has exited with code 0 (0x0).
+The program '[14420] DX11Starter.exe' has exited with code 0 (0x0).

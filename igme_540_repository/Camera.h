@@ -13,6 +13,7 @@ private:
 	DirectX::XMFLOAT4X4 viewMatrix;
 	DirectX::XMFLOAT4X4 viewInv;
 	DirectX::XMFLOAT4X4 projectionMatrix;
+	DirectX::XMFLOAT3 velocity;
 	POINT mouseCenter;
 	float fov;
 	float nearClip;
@@ -33,6 +34,7 @@ public:
 	DirectX::XMFLOAT4X4 GetViewMatrix();
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
 	DirectX::XMFLOAT4X4 GetViewInverse();
+	DirectX::XMFLOAT3 GetVelocity();
 
 	// methods
 	void UpdateViewMatrix();

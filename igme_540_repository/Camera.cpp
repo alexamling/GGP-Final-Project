@@ -58,6 +58,11 @@ DirectX::XMFLOAT4X4 Camera::GetViewInverse()
 	return viewInv;
 }
 
+DirectX::XMFLOAT3 Camera::GetVelocity()
+{
+	return velocity;
+}
+
 void Camera::UpdateViewMatrix()
 {
 	// set vectors
@@ -91,6 +96,7 @@ void Camera::UpdateProjectionMatrix(int width, int height, HWND window)
 void Camera::Update(float dt, HWND windowHandle)
 {
 	float zoomRectifier = 1.f;
+	XMVECTOR vector = XMVECTOR();
 
 	if (GetAsyncKeyState(VK_SHIFT) & 0x8000) {
 		zoomRectifier *= 5;
@@ -99,33 +105,43 @@ void Camera::Update(float dt, HWND windowHandle)
 		zoomRectifier *= .2f;
 	}
 
-	zoomRectifier *= moveSpeed * dt;
+	zoomRectifier *= moveSpeed;
 
+	XMFLOAT3 temp;
 	// keyboard movement
 	if (GetAsyncKeyState('W') & 0x8000) {
-		transform.MoveRelative(0, 0, zoomRectifier);
+		temp = XMFLOAT3(0, 0, zoomRectifier);
+		vector += XMLoadFloat3(&temp);
 		dirtyView = true;
 	}
 	if (GetAsyncKeyState('S') & 0x8000) {
-		transform.MoveRelative(0, 0, -zoomRectifier);
+		temp = XMFLOAT3(0, 0, -zoomRectifier);
+		vector += XMLoadFloat3(&temp);
 		dirtyView = true;
 	}
 	if (GetAsyncKeyState('A') & 0x8000) {
-		transform.MoveRelative(-zoomRectifier, 0, 0);
+		temp = XMFLOAT3(-zoomRectifier, 0, 0);
+		vector += XMLoadFloat3(&temp);
 		dirtyView = true;
 	}
 	if (GetAsyncKeyState('D') & 0x8000) {
-		transform.MoveRelative(zoomRectifier, 0, 0);
+		temp = XMFLOAT3(zoomRectifier, 0, 0);
+		vector += XMLoadFloat3(&temp);
 		dirtyView = true;
 	}
 	if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
-		transform.MoveRelative(0, zoomRectifier, 0);
+		temp = XMFLOAT3(0, zoomRectifier, 0);
+		vector += XMLoadFloat3(&temp);
 		dirtyView = true;
 	}
 	if (GetAsyncKeyState('C') & 0x8000) {
-		transform.MoveRelative(0, -zoomRectifier, 0);
+		temp = XMFLOAT3(0, -zoomRectifier, 0);
+		vector += XMLoadFloat3(&temp);
 		dirtyView = true;
 	}
+
+	transform.MoveRelative(dt * vector);
+	XMStoreFloat3(&velocity, vector);
 
 	// keyboard rotation
 	if (GetAsyncKeyState('Q') & 0x8000) {
